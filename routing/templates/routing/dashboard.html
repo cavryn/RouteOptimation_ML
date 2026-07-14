@@ -1,0 +1,195 @@
+{% extends 'routing/base.html' %}
+
+{% block title %}Dashboard - Route Optimization{% endblock %}
+
+{% block content %}
+<div class="max-w-7xl mx-auto">
+    
+    <!-- Header -->
+    <div class="mb-8">
+        <h2 class="text-3xl font-bold text-gray-800">Dashboard</h2>
+        <p class="text-gray-600 mt-2">Generate sample data atau upload CSV, lalu jalankan optimasi PSO</p>
+    </div>
+
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        
+        <!-- Left Column: Input Forms -->
+        <div class="lg:col-span-2 space-y-6">
+            
+            <!-- Generate Sample Data -->
+            <div class="bg-white rounded-lg shadow-md p-6">
+                <h3 class="text-xl font-semibold text-gray-800 mb-4 flex items-center">
+                    <svg class="w-6 h-6 mr-2 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path>
+                    </svg>
+                    Generate Sample Data
+                </h3>
+                
+                <form method="POST" action="{% url 'generate_sample' %}" class="space-y-4">
+                    {% csrf_token %}
+                    
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">{{ sample_form.n_nodes.label }}</label>
+                        {{ sample_form.n_nodes }}
+                        <p class="text-xs text-gray-500 mt-1">{{ sample_form.n_nodes.help_text }}</p>
+                    </div>
+                    
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">{{ sample_form.seed.label }}</label>
+                        {{ sample_form.seed }}
+                        <p class="text-xs text-gray-500 mt-1">{{ sample_form.seed.help_text }}</p>
+                    </div>
+                    
+                    <button type="submit" class="btn-primary w-full">
+                        Generate Data
+                    </button>
+                </form>
+            </div>
+
+            <!-- Depot Configuration -->
+            <div class="bg-white rounded-lg shadow-md p-6">
+                <h3 class="text-xl font-semibold text-gray-800 mb-4 flex items-center">
+                    <svg class="w-6 h-6 mr-2 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"></path>
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"></path>
+                    </svg>
+                    Depot Configuration
+                </h3>
+                
+                <form method="POST" action="{% url 'run_optimization' %}" id="optimization-form">
+                    {% csrf_token %}
+                    
+                    <div class="space-y-4 mb-6">
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">{{ depot_form.depot_latitude.label }}</label>
+                            {{ depot_form.depot_latitude }}
+                        </div>
+                        
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">{{ depot_form.depot_longitude.label }}</label>
+                            {{ depot_form.depot_longitude }}
+                        </div>
+                    </div>
+
+                    <!-- PSO Parameters -->
+                    <h4 class="text-lg font-semibold text-gray-800 mb-4 mt-6">PSO Parameters</h4>
+                    
+                    <div class="space-y-4">
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">{{ pso_form.n_particles.label }}</label>
+                            {{ pso_form.n_particles }}
+                            <p class="text-xs text-gray-500 mt-1">{{ pso_form.n_particles.help_text }}</p>
+                        </div>
+                        
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">{{ pso_form.n_iterations.label }}</label>
+                            {{ pso_form.n_iterations }}
+                            <p class="text-xs text-gray-500 mt-1">{{ pso_form.n_iterations.help_text }}</p>
+                        </div>
+                    </div>
+
+                    <button type="submit" class="btn-primary w-full mt-6">
+                        Run Optimization
+                    </button>
+                </form>
+            </div>
+
+        </div>
+
+        <!-- Right Column: Stats & Info -->
+        <div class="space-y-6">
+            
+            <!-- Current Data Stats -->
+            <div class="bg-white rounded-lg shadow-md p-6">
+                <h3 class="text-lg font-semibold text-gray-800 mb-4">Current Data</h3>
+                
+                <div class="space-y-3">
+                    <div class="flex justify-between items-center">
+                        <span class="text-gray-600">Total Nodes:</span>
+                        <span class="text-2xl font-bold text-blue-600">{{ total_nodes }}</span>
+                    </div>
+                    
+                    <div class="flex justify-between items-center">
+                        <span class="text-gray-600">Status:</span>
+                        <span class="{% if total_nodes > 0 %}text-green-600{% else %}text-red-600{% endif %} font-semibold">
+                            {% if total_nodes > 0 %}Ready{% else %}No Data{% endif %}
+                        </span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Info Card -->
+            <div class="bg-blue-50 rounded-lg p-6 border border-blue-200">
+                <h4 class="text-sm font-semibold text-blue-800 mb-2">Quick Guide</h4>
+                <ul class="text-xs text-blue-700 space-y-2">
+                    <li>1. Generate sample data (30-50 nodes recommended)</li>
+                    <li>2. Set depot coordinates (default: Gresik center)</li>
+                    <li>3. Adjust PSO parameters if needed</li>
+                    <li>4. Click "Run Optimization"</li>
+                    <li>5. View results with interactive map</li>
+                </ul>
+            </div>
+
+            <!-- Algorithm Info -->
+            <div class="bg-indigo-600 rounded-lg p-6 text-white">
+                <h4 class="text-sm font-semibold mb-2">Algorithm</h4>
+                <p class="text-xs mb-3">PSO (Particle Swarm Optimization)</p>
+                <div class="text-xs space-y-1 opacity-90">
+                    <p>• Swarm-based metaheuristic</p>
+                    <p>• Population: 20 particles</p>
+                    <p>• Iterations: 200</p>
+                    <p>• Comparison: vs Greedy NN</p>
+                </div>
+            </div>
+
+        </div>
+    </div>
+
+    <!-- Delivery Points Table -->
+    {% if delivery_points %}
+    <div class="mt-8 bg-white rounded-lg shadow-md p-6">
+        <h3 class="text-xl font-semibold text-gray-800 mb-4">Delivery Points Preview</h3>
+        <div class="overflow-x-auto">
+            <table class="min-w-full divide-y divide-gray-200">
+                <thead class="bg-gray-50">
+                    <tr>
+                        <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Node</th>
+                        <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Latitude</th>
+                        <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Longitude</th>
+                        <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Demand</th>
+                        <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Priority</th>
+                        <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Status</th>
+                    </tr>
+                </thead>
+                <tbody class="bg-white divide-y divide-gray-200">
+                    {% for point in delivery_points|slice:":10" %}
+                    <tr>
+                        <td class="px-4 py-3 text-sm text-gray-900">{{ point.node_id }}</td>
+                        <td class="px-4 py-3 text-sm text-gray-600">{{ point.latitude|floatformat:6 }}</td>
+                        <td class="px-4 py-3 text-sm text-gray-600">{{ point.longitude|floatformat:6 }}</td>
+                        <td class="px-4 py-3 text-sm text-gray-600">{{ point.demand }}</td>
+                        <td class="px-4 py-3 text-sm">
+                            <span class="px-2 py-1 text-xs rounded {% if point.priority == 1 %}bg-red-100 text-red-800{% elif point.priority == 2 %}bg-blue-100 text-blue-800{% else %}bg-gray-100 text-gray-800{% endif %}">
+                                {{ point.get_priority_display }}
+                            </span>
+                        </td>
+                        <td class="px-4 py-3 text-sm">
+                            {% if point.road_status %}
+                            <span class="text-green-600">Open</span>
+                            {% else %}
+                            <span class="text-red-600">Closed</span>
+                            {% endif %}
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+            {% if delivery_points.count > 10 %}
+            <p class="text-xs text-gray-500 mt-3 text-center">Showing 10 of {{ delivery_points.count }} nodes</p>
+            {% endif %}
+        </div>
+    </div>
+    {% endif %}
+
+</div>
+{% endblock %}

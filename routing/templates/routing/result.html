@@ -1,0 +1,157 @@
+{% extends 'routing/base.html' %}
+
+{% block title %}Results - Route Optimization{% endblock %}
+
+{% block content %}
+<div class="max-w-7xl mx-auto">
+    
+    <!-- Header -->
+    <div class="mb-6 flex items-center justify-between">
+        <div>
+            <h2 class="text-3xl font-bold text-gray-800">Optimization Results</h2>
+            <p class="text-gray-600 mt-1">{{ opt_run.algorithm }} - {{ opt_run.created_at|date:"Y-m-d H:i" }}</p>
+        </div>
+        <a href="{% url 'dashboard' %}" class="btn-secondary">
+            ← Back to Dashboard
+        </a>
+    </div>
+
+    <!-- Metrics Cards -->
+    <div class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-8">
+        
+        <div class="bg-white rounded-lg shadow-md p-6">
+            <div class="flex items-center justify-between">
+                <div>
+                    <p class="text-sm text-gray-600">PSO Distance</p>
+                    <p class="text-2xl font-bold text-blue-600">{{ comparison.pso_distance_km }} km</p>
+                </div>
+                <svg class="w-12 h-12 text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 20l-5.447-2.724A1 1 0 013 16.382V5.618a1 1 0 011.447-.894L9 7m0 13l6-3m-6 3V7m6 10l4.553 2.276A1 1 0 0021 18.382V7.618a1 1 0 00-.553-.894L15 4m0 13V4m0 0L9 7"></path>
+                </svg>
+            </div>
+        </div>
+
+        <div class="bg-white rounded-lg shadow-md p-6">
+            <div class="flex items-center justify-between">
+                <div>
+                    <p class="text-sm text-gray-600">Baseline Distance</p>
+                    <p class="text-2xl font-bold text-gray-600">{{ comparison.baseline_distance_km }} km</p>
+                </div>
+                <svg class="w-12 h-12 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6"></path>
+                </svg>
+            </div>
+        </div>
+
+        <div class="bg-white rounded-lg shadow-md p-6">
+            <div class="flex items-center justify-between">
+                <div>
+                    <p class="text-sm text-gray-600">Improvement</p>
+                    <p class="text-2xl font-bold {% if comparison.pso_better %}text-green-600{% else %}text-red-600{% endif %}">
+                        {{ comparison.improvement_km }} km
+                    </p>
+                    <p class="text-xs text-gray-500">({{ comparison.improvement_pct }}%)</p>
+                </div>
+                <svg class="w-12 h-12 {% if comparison.pso_better %}text-green-500{% else %}text-red-500{% endif %}" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6"></path>
+                </svg>
+            </div>
+        </div>
+
+        <div class="bg-white rounded-lg shadow-md p-6">
+            <div class="flex items-center justify-between">
+                <div>
+                    <p class="text-sm text-gray-600">Computation Time</p>
+                    <p class="text-2xl font-bold text-purple-600">{{ opt_run.computation_time_sec|floatformat:2 }}s</p>
+                </div>
+                <svg class="w-12 h-12 text-purple-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                </svg>
+            </div>
+        </div>
+    </div>
+
+    <!-- Detailed Info -->
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
+        
+        <!-- PSO Details -->
+        <div class="bg-white rounded-lg shadow-md p-6">
+            <h3 class="text-lg font-semibold text-gray-800 mb-4">PSO Details</h3>
+            <div class="space-y-3 text-sm">
+                <div class="flex justify-between">
+                    <span class="text-gray-600">Algorithm:</span>
+                    <span class="font-medium">{{ opt_run.algorithm }}</span>
+                </div>
+                <div class="flex justify-between">
+                    <span class="text-gray-600">Nodes:</span>
+                    <span class="font-medium">{{ opt_run.n_nodes }}</span>
+                </div>
+                <div class="flex justify-between">
+                    <span class="text-gray-600">Feasibility:</span>
+                    <span class="font-medium">{{ opt_run.route_feasibility_pct }}%</span>
+                </div>
+                <div class="flex justify-between">
+                    <span class="text-gray-600">TW Violations:</span>
+                    <span class="font-medium {% if opt_run.time_window_violations == 0 %}text-green-600{% else %}text-red-600{% endif %}">
+                        {{ opt_run.time_window_violations }}
+                    </span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Parameters -->
+        <div class="bg-white rounded-lg shadow-md p-6">
+            <h3 class="text-lg font-semibold text-gray-800 mb-4">Parameters</h3>
+            <div class="space-y-2 text-sm">
+                {% for key, value in opt_run.parameters.items %}
+                <div class="flex justify-between">
+                    <span class="text-gray-600">{{ key }}:</span>
+                    <span class="font-medium">{{ value }}</span>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+
+        <!-- Status -->
+        <div class="bg-teal-600 rounded-lg p-6 text-white">
+            <h3 class="text-lg font-semibold mb-2">Optimization Complete</h3>
+            <p class="text-sm opacity-90 mb-4">Route successfully optimized using PSO algorithm</p>
+            <div class="text-xs space-y-1 opacity-80">
+                <p>• Distance calculated via OSRM</p>
+                <p>• Constraints handled</p>
+                <p>• Baseline comparison done</p>
+                <p>• Results saved to database</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Map Placeholder -->
+    <div class="bg-white rounded-lg shadow-md p-6 mb-8">
+        <h3 class="text-xl font-semibold text-gray-800 mb-4">Route Visualization</h3>
+        <div class="bg-gray-100 rounded-lg p-12 text-center">
+            <svg class="w-24 h-24 mx-auto text-gray-400 mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 20l-5.447-2.724A1 1 0 013 16.382V5.618a1 1 0 011.447-.894L9 7m0 13l6-3m-6 3V7m6 10l4.553 2.276A1 1 0 0021 18.382V7.618a1 1 0 00-.553-.894L15 4m0 13V4m0 0L9 7"></path>
+            </svg>
+            <p class="text-gray-600 font-medium">Interactive Map</p>
+            <p class="text-sm text-gray-500 mt-2">Folium map integration will be added here</p>
+            <p class="text-xs text-gray-400 mt-1">(Showing optimized route with markers)</p>
+        </div>
+    </div>
+
+    <!-- Route Sequence -->
+    <div class="bg-white rounded-lg shadow-md p-6">
+        <h3 class="text-xl font-semibold text-gray-800 mb-4">Route Sequence</h3>
+        <div class="flex flex-wrap gap-2">
+            {% for node in opt_run.route_json %}
+            <div class="{% if node == 0 %}bg-red-100 text-red-800{% else %}bg-blue-100 text-blue-800{% endif %} px-3 py-1 rounded-lg text-sm font-medium">
+                {% if node == 0 %}Depot{% else %}{{ node }}{% endif %}
+            </div>
+            {% if not forloop.last %}
+            <span class="text-gray-400">→</span>
+            {% endif %}
+            {% endfor %}
+        </div>
+    </div>
+
+</div>
+{% endblock %}

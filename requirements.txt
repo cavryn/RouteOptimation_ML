@@ -1,0 +1,10 @@
+Django>=5.0
+mealpy>=3.0
+osmnx>=1.9
+networkx>=3.2
+folium>=0.16
+numpy>=1.26
+pandas>=2.2
+requests>=2.31
+matplotlib>=3.8
+python-dotenv>=1.0
