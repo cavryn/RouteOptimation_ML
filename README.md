@@ -1,12 +1,12 @@
 # Sistem Optimasi Rute Dinamis - Django Version
 
-Sistem optimasi rute pengiriman berbasis algoritma PSO (Particle Swarm Optimization) dengan Django framework dan Tailwind CSS untuk wilayah Kabupaten Gresik, Jawa Timur.
+Sistem optimasi rute pengiriman berbasis algoritma ACO (Ant Colony Optimization) dengan Django framework dan Tailwind CSS untuk wilayah Kabupaten Gresik, Jawa Timur.
 
 ## Fitur Utama
 
 - ✅ Framework Django dengan MVT pattern
 - ✅ UI modern dengan Tailwind CSS
-- ✅ Algoritma PSO (MealPy) untuk optimasi rute
+- ✅ Algoritma ACO (MealPy) untuk optimasi rute
 - 🗺️ Visualisasi peta interaktif berbasis Folium
 - 🛣️ Perhitungan jarak berbasis jaringan jalan nyata (OSRM API)
 - ⏰ Constraint handling (time window, road status, priority)
@@ -59,7 +59,7 @@ optimasi-rute-django/
 
 - **Framework**: Django 5.0+
 - **Frontend**: Tailwind CSS (CDN)
-- **Algoritma**: MealPy PSO
+- **Algoritma**: MealPy ACO
 - **Maps**: Folium
 - **Routing**: OSRM API
 - **Database**: SQLite (Django ORM)

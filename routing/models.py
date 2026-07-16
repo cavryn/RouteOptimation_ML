@@ -30,7 +30,7 @@ class DeliveryPoint(models.Model):
 
 class OptimizationRun(models.Model):
     """Model untuk menyimpan hasil optimization run"""
-    algorithm = models.CharField(max_length=50, default='PSO')
+    algorithm = models.CharField(max_length=50, default='ACO')
     n_nodes = models.IntegerField()
     total_distance_km = models.FloatField()
     computation_time_sec = models.FloatField()
@@ -64,11 +64,11 @@ class OptimizationRun(models.Model):
 
 class ComparisonResult(models.Model):
     """Model untuk menyimpan hasil perbandingan algoritma"""
-    pso_distance_km = models.FloatField()
+    aco_distance_km = models.FloatField()
     baseline_distance_km = models.FloatField()
     improvement_km = models.FloatField()
     improvement_pct = models.FloatField()
-    pso_better = models.BooleanField()
+    aco_better = models.BooleanField()
     created_at = models.DateTimeField(default=timezone.now)
     
     # Link ke optimization run terkait
@@ -79,4 +79,4 @@ class ComparisonResult(models.Model):
         ordering = ['-created_at']
     
     def __str__(self):
-        return f"Comparison - PSO: {self.pso_distance_km}km vs Baseline: {self.baseline_distance_km}km"
+        return f"Comparison - ACO: {self.aco_distance_km}km vs Baseline: {self.baseline_distance_km}km"

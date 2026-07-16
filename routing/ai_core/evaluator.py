@@ -92,19 +92,19 @@ class RouteEvaluator:
         
         return passed_checks / total_checks if total_checks > 0 else 0.0
     
-    def compare_algorithms(self, pso_route: List[int], baseline_route: List[int],
+    def compare_algorithms(self, aco_route: List[int], baseline_route: List[int],
                           distance_matrix: np.ndarray, constraints_df: pd.DataFrame) -> Dict:
-        """Compare PSO vs baseline"""
-        pso_eval = self.evaluate_route(pso_route, distance_matrix, constraints_df)
+        """Compare ACO vs baseline"""
+        aco_eval = self.evaluate_route(aco_route, distance_matrix, constraints_df)
         baseline_eval = self.evaluate_route(baseline_route, distance_matrix, constraints_df)
         
-        distance_improvement = baseline_eval['total_distance_km'] - pso_eval['total_distance_km']
+        distance_improvement = baseline_eval['total_distance_km'] - aco_eval['total_distance_km']
         improvement_pct = (distance_improvement / baseline_eval['total_distance_km'] * 100) if baseline_eval['total_distance_km'] > 0 else 0
         
         return {
-            'pso': pso_eval,
+            'aco': aco_eval,
             'baseline': baseline_eval,
             'improvement_km': round(distance_improvement, 2),
             'improvement_pct': round(improvement_pct, 2),
-            'pso_better': distance_improvement > 0
+            'aco_better': distance_improvement > 0
         }

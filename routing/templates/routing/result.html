@@ -22,8 +22,8 @@
         <div class="bg-white rounded-lg shadow-md p-6">
             <div class="flex items-center justify-between">
                 <div>
-                    <p class="text-sm text-gray-600">PSO Distance</p>
-                    <p class="text-2xl font-bold text-blue-600">{{ comparison.pso_distance_km }} km</p>
+                    <p class="text-sm text-gray-600">ACO Distance</p>
+                    <p class="text-2xl font-bold text-blue-600">{{ comparison.aco_distance_km }} km</p>
                 </div>
                 <svg class="w-12 h-12 text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 20l-5.447-2.724A1 1 0 013 16.382V5.618a1 1 0 011.447-.894L9 7m0 13l6-3m-6 3V7m6 10l4.553 2.276A1 1 0 0021 18.382V7.618a1 1 0 00-.553-.894L15 4m0 13V4m0 0L9 7"></path>
@@ -47,12 +47,12 @@
             <div class="flex items-center justify-between">
                 <div>
                     <p class="text-sm text-gray-600">Improvement</p>
-                    <p class="text-2xl font-bold {% if comparison.pso_better %}text-green-600{% else %}text-red-600{% endif %}">
+                    <p class="text-2xl font-bold {% if comparison.aco_better %}text-green-600{% else %}text-red-600{% endif %}">
                         {{ comparison.improvement_km }} km
                     </p>
                     <p class="text-xs text-gray-500">({{ comparison.improvement_pct }}%)</p>
                 </div>
-                <svg class="w-12 h-12 {% if comparison.pso_better %}text-green-500{% else %}text-red-500{% endif %}" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <svg class="w-12 h-12 {% if comparison.aco_better %}text-green-500{% else %}text-red-500{% endif %}" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6"></path>
                 </svg>
             </div>
@@ -74,9 +74,9 @@
     <!-- Detailed Info -->
     <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
         
-        <!-- PSO Details -->
+        <!-- ACO Details -->
         <div class="bg-white rounded-lg shadow-md p-6">
-            <h3 class="text-lg font-semibold text-gray-800 mb-4">PSO Details</h3>
+            <h3 class="text-lg font-semibold text-gray-800 mb-4">ACO Details</h3>
             <div class="space-y-3 text-sm">
                 <div class="flex justify-between">
                     <span class="text-gray-600">Algorithm:</span>
@@ -115,7 +115,7 @@
         <!-- Status -->
         <div class="bg-teal-600 rounded-lg p-6 text-white">
             <h3 class="text-lg font-semibold mb-2">Optimization Complete</h3>
-            <p class="text-sm opacity-90 mb-4">Route successfully optimized using PSO algorithm</p>
+            <p class="text-sm opacity-90 mb-4">Route successfully optimized using ACO algorithm</p>
             <div class="text-xs space-y-1 opacity-80">
                 <p>• Distance calculated via OSRM</p>
                 <p>• Constraints handled</p>

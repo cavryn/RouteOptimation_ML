@@ -1,14 +1,15 @@
 """
 Django Views for Route Optimization System
 Request handlers untuk dashboard, optimization, dan results
+Menggunakan ACO (Ant Colony Optimization) sesuai Bab III paper
 """
 
 from django.shortcuts import render, redirect
 from django.contrib import messages
 from django.http import JsonResponse
 from .models import OptimizationRun, ComparisonResult, DeliveryPoint
-from .forms import DepotForm, PSOParametersForm, GenerateSampleDataForm
-from .ai_core.pso_optimizer import PSOOptimizer
+from .forms import DepotForm, ACOParametersForm, GenerateSampleDataForm
+from .ai_core.aco_optimizer import ACOOptimizer
 from .ai_core.baseline_nn import NearestNeighborBaseline
 from .ai_core.osrm_client import OSRMClient
 from .ai_core.evaluator import RouteEvaluator
@@ -20,7 +21,7 @@ import time
 def dashboard(request):
     """Main dashboard view"""
     depot_form = DepotForm()
-    pso_form = PSOParametersForm()
+    aco_form = ACOParametersForm()
     sample_form = GenerateSampleDataForm()
     
     # Get existing delivery points
@@ -28,7 +29,7 @@ def dashboard(request):
     
     context = {
         'depot_form': depot_form,
-        'pso_form': pso_form,
+        'aco_form': aco_form,
         'sample_form': sample_form,
         'delivery_points': delivery_points,
         'total_nodes': delivery_points.count()
@@ -70,17 +71,21 @@ def generate_sample_data(request):
 
 
 def run_optimization(request):
-    """Run PSO optimization"""
+    """Run ACO optimization"""
     if request.method == 'POST':
         depot_form = DepotForm(request.POST)
-        pso_form = PSOParametersForm(request.POST)
+        aco_form = ACOParametersForm(request.POST)
         
-        if depot_form.is_valid() and pso_form.is_valid():
+        if depot_form.is_valid() and aco_form.is_valid():
             # Get parameters
             depot_lat = depot_form.cleaned_data['depot_latitude']
             depot_lon = depot_form.cleaned_data['depot_longitude']
-            n_particles = pso_form.cleaned_data['n_particles']
-            n_iterations = pso_form.cleaned_data['n_iterations']
+            n_ants = aco_form.cleaned_data['n_ants']
+            n_iterations = aco_form.cleaned_data['n_iterations']
+            alpha = aco_form.cleaned_data['alpha']
+            beta = aco_form.cleaned_data['beta']
+            rho = aco_form.cleaned_data['rho']
+            Q = aco_form.cleaned_data['Q']
             
             # Get delivery points
             delivery_points = DeliveryPoint.objects.all()
@@ -116,11 +121,12 @@ def run_optimization(request):
             coords = [(row['longitude'], row['latitude']) for _, row in df_with_depot.iterrows()]
             distance_matrix = osrm_client.get_distance_matrix(coords)
             
-            # Run PSO
+            # Run ACO
             start_time = time.time()
-            pso = PSOOptimizer(n_particles=n_particles, n_iterations=n_iterations)
-            pso_route, pso_distance, convergence = pso.optimize(distance_matrix, df_with_depot)
-            pso_time = time.time() - start_time
+            aco = ACOOptimizer(n_ants=n_ants, n_iterations=n_iterations, 
+                               alpha=alpha, beta=beta, rho=rho, Q=Q)
+            aco_route, aco_distance, convergence = aco.optimize(distance_matrix, df_with_depot)
+            aco_time = time.time() - start_time
             
             # Run baseline
             baseline = NearestNeighborBaseline()
@@ -128,34 +134,34 @@ def run_optimization(request):
             
             # Evaluate
             evaluator = RouteEvaluator()
-            comparison = evaluator.compare_algorithms(pso_route, nn_route, distance_matrix, df_with_depot)
+            comparison = evaluator.compare_algorithms(aco_route, nn_route, distance_matrix, df_with_depot)
             
             # Save to database
             opt_run = OptimizationRun.objects.create(
-                algorithm='PSO',
+                algorithm='ACO',
                 n_nodes=delivery_points.count(),
-                total_distance_km=comparison['pso']['total_distance_km'],
-                computation_time_sec=pso_time,
-                time_window_violations=comparison['pso']['time_window_violations'],
-                route_feasibility_pct=comparison['pso']['route_feasibility_pct'],
-                parameters={'n_particles': n_particles, 'n_iterations': n_iterations},
-                route_json=pso_route,
-                notes=f'PSO optimization with {n_particles} particles and {n_iterations} iterations'
+                total_distance_km=comparison['aco']['total_distance_km'],
+                computation_time_sec=aco_time,
+                time_window_violations=comparison['aco']['time_window_violations'],
+                route_feasibility_pct=comparison['aco']['route_feasibility_pct'],
+                parameters={'n_ants': n_ants, 'n_iterations': n_iterations, 'alpha': alpha, 'beta': beta, 'rho': rho, 'Q': Q},
+                route_json=aco_route,
+                notes=f'ACO optimization with {n_ants} ants and {n_iterations} iterations'
             )
             
             ComparisonResult.objects.create(
                 optimization_run=opt_run,
-                pso_distance_km=comparison['pso']['total_distance_km'],
+                aco_distance_km=comparison['aco']['total_distance_km'],
                 baseline_distance_km=comparison['baseline']['total_distance_km'],
                 improvement_km=comparison['improvement_km'],
                 improvement_pct=comparison['improvement_pct'],
-                pso_better=comparison['pso_better']
+                aco_better=comparison['aco_better']
             )
             
             # Store in session for result page
             request.session['latest_run_id'] = opt_run.id
             
-            messages.success(request, f'Optimization completed in {pso_time:.2f} seconds!')
+            messages.success(request, f'Optimization completed in {aco_time:.2f} seconds!')
             return redirect('result')
     
     return redirect('dashboard')

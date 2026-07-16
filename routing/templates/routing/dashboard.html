@@ -8,7 +8,7 @@
     <!-- Header -->
     <div class="mb-8">
         <h2 class="text-3xl font-bold text-gray-800">Dashboard</h2>
-        <p class="text-gray-600 mt-2">Generate sample data atau upload CSV, lalu jalankan optimasi PSO</p>
+        <p class="text-gray-600 mt-2">Generate sample data atau upload CSV, lalu jalankan optimasi ACO</p>
     </div>
 
     <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
@@ -71,20 +71,46 @@
                         </div>
                     </div>
 
-                    <!-- PSO Parameters -->
-                    <h4 class="text-lg font-semibold text-gray-800 mb-4 mt-6">PSO Parameters</h4>
+                    <!-- ACO Parameters -->
+                    <h4 class="text-lg font-semibold text-gray-800 mb-4 mt-6">ACO Parameters</h4>
                     
                     <div class="space-y-4">
                         <div>
-                            <label class="block text-sm font-medium text-gray-700 mb-2">{{ pso_form.n_particles.label }}</label>
-                            {{ pso_form.n_particles }}
-                            <p class="text-xs text-gray-500 mt-1">{{ pso_form.n_particles.help_text }}</p>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">{{ aco_form.n_ants.label }}</label>
+                            {{ aco_form.n_ants }}
+                            <p class="text-xs text-gray-500 mt-1">{{ aco_form.n_ants.help_text }}</p>
                         </div>
                         
                         <div>
-                            <label class="block text-sm font-medium text-gray-700 mb-2">{{ pso_form.n_iterations.label }}</label>
-                            {{ pso_form.n_iterations }}
-                            <p class="text-xs text-gray-500 mt-1">{{ pso_form.n_iterations.help_text }}</p>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">{{ aco_form.n_iterations.label }}</label>
+                            {{ aco_form.n_iterations }}
+                            <p class="text-xs text-gray-500 mt-1">{{ aco_form.n_iterations.help_text }}</p>
+                        </div>
+                        
+                        <div class="grid grid-cols-2 gap-4">
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-2">{{ aco_form.alpha.label }}</label>
+                                {{ aco_form.alpha }}
+                                <p class="text-xs text-gray-500 mt-1">{{ aco_form.alpha.help_text }}</p>
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-2">{{ aco_form.beta.label }}</label>
+                                {{ aco_form.beta }}
+                                <p class="text-xs text-gray-500 mt-1">{{ aco_form.beta.help_text }}</p>
+                            </div>
+                        </div>
+                        
+                        <div class="grid grid-cols-2 gap-4">
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-2">{{ aco_form.rho.label }}</label>
+                                {{ aco_form.rho }}
+                                <p class="text-xs text-gray-500 mt-1">{{ aco_form.rho.help_text }}</p>
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-2">{{ aco_form.Q.label }}</label>
+                                {{ aco_form.Q }}
+                                <p class="text-xs text-gray-500 mt-1">{{ aco_form.Q.help_text }}</p>
+                            </div>
                         </div>
                     </div>
 
@@ -124,7 +150,7 @@
                 <ul class="text-xs text-blue-700 space-y-2">
                     <li>1. Generate sample data (30-50 nodes recommended)</li>
                     <li>2. Set depot coordinates (default: Gresik center)</li>
-                    <li>3. Adjust PSO parameters if needed</li>
+                    <li>3. Adjust ACO parameters if needed</li>
                     <li>4. Click "Run Optimization"</li>
                     <li>5. View results with interactive map</li>
                 </ul>
@@ -133,10 +159,10 @@
             <!-- Algorithm Info -->
             <div class="bg-indigo-600 rounded-lg p-6 text-white">
                 <h4 class="text-sm font-semibold mb-2">Algorithm</h4>
-                <p class="text-xs mb-3">PSO (Particle Swarm Optimization)</p>
+                <p class="text-xs mb-3">ACO (Ant Colony Optimization)</p>
                 <div class="text-xs space-y-1 opacity-90">
                     <p>• Swarm-based metaheuristic</p>
-                    <p>• Population: 20 particles</p>
+                    <p>• Colony: 20 ants</p>
                     <p>• Iterations: 200</p>
                     <p>• Comparison: vs Greedy NN</p>
                 </div>

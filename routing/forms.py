@@ -1,6 +1,6 @@
 """
 Django Forms for Route Optimization
-Form validation untuk input data pengiriman dan parameter PSO
+Form validation untuk input data pengiriman dan parameter ACO
 """
 
 from django import forms
@@ -50,9 +50,9 @@ class DepotForm(forms.Form):
     )
 
 
-class PSOParametersForm(forms.Form):
-    """Form untuk parameter PSO"""
-    n_particles = forms.IntegerField(
+class ACOParametersForm(forms.Form):
+    """Form untuk parameter ACO (Ant Colony Optimization)"""
+    n_ants = forms.IntegerField(
         initial=20,
         min_value=5,
         max_value=100,
@@ -60,8 +60,8 @@ class PSOParametersForm(forms.Form):
             'class': 'form-input rounded-lg border-gray-300 w-full',
             'placeholder': '10-100'
         }),
-        label='Number of Particles',
-        help_text='Jumlah particles dalam populasi (recommended: 20)'
+        label='Number of Ants',
+        help_text='Jumlah semut dalam koloni (recommended: 20)'
     )
     
     n_iterations = forms.IntegerField(
@@ -74,6 +74,58 @@ class PSOParametersForm(forms.Form):
         }),
         label='Maximum Iterations',
         help_text='Jumlah iterasi maksimum (recommended: 200)'
+    )
+    
+    alpha = forms.FloatField(
+        initial=1.0,
+        min_value=0.0,
+        max_value=5.0,
+        widget=forms.NumberInput(attrs={
+            'class': 'form-input rounded-lg border-gray-300 w-full',
+            'step': '0.1',
+            'placeholder': '0.0-5.0'
+        }),
+        label='Alpha (α) - Pheromone Weight',
+        help_text='Bobot pheromone (recommended: 1.0)'
+    )
+    
+    beta = forms.FloatField(
+        initial=2.0,
+        min_value=0.0,
+        max_value=5.0,
+        widget=forms.NumberInput(attrs={
+            'class': 'form-input rounded-lg border-gray-300 w-full',
+            'step': '0.1',
+            'placeholder': '0.0-5.0'
+        }),
+        label='Beta (β) - Heuristic Weight',
+        help_text='Bobot informasi heuristik (recommended: 2.0)'
+    )
+    
+    rho = forms.FloatField(
+        initial=0.5,
+        min_value=0.0,
+        max_value=1.0,
+        widget=forms.NumberInput(attrs={
+            'class': 'form-input rounded-lg border-gray-300 w-full',
+            'step': '0.01',
+            'placeholder': '0.0-1.0'
+        }),
+        label='Rho (ρ) - Evaporation Rate',
+        help_text='Tingkat penguapan pheromone (recommended: 0.5)'
+    )
+    
+    Q = forms.FloatField(
+        initial=100.0,
+        min_value=1.0,
+        max_value=1000.0,
+        widget=forms.NumberInput(attrs={
+            'class': 'form-input rounded-lg border-gray-300 w-full',
+            'step': '1.0',
+            'placeholder': '1-1000'
+        }),
+        label='Q - Pheromone Constant',
+        help_text='Konstanta pheromone (recommended: 100)'
     )
 
 

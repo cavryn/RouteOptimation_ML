@@ -23,6 +23,6 @@ class OptimizationRunAdmin(admin.ModelAdmin):
 
 @admin.register(ComparisonResult)
 class ComparisonResultAdmin(admin.ModelAdmin):
-    list_display = ['pso_distance_km', 'baseline_distance_km', 'improvement_pct', 'pso_better', 'created_at']
-    list_filter = ['pso_better', 'created_at']
+    list_display = ['aco_distance_km', 'baseline_distance_km', 'improvement_pct', 'aco_better', 'created_at']
+    list_filter = ['aco_better', 'created_at']
     readonly_fields = ['created_at']
