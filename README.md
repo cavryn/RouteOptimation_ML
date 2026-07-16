@@ -2,17 +2,6 @@
 
 Sistem optimasi rute pengiriman berbasis algoritma ACO (Ant Colony Optimization) dengan Django framework dan Tailwind CSS untuk wilayah Kabupaten Gresik, Jawa Timur.
 
-## Fitur Utama
-
-- ✅ Framework Django dengan MVT pattern
-- ✅ UI modern dengan Tailwind CSS
-- ✅ Algoritma ACO (MealPy) untuk optimasi rute
-- 🗺️ Visualisasi peta interaktif berbasis Folium
-- 🛣️ Perhitungan jarak berbasis jaringan jalan nyata (OSRM API)
-- ⏰ Constraint handling (time window, road status, priority)
-- 📊 Perbandingan dengan baseline (Greedy Nearest Neighbor)
-- 💾 Django ORM untuk penyimpanan histori
-- 📤 Export hasil ke CSV/JSON
 
 ## Instalasi
 
