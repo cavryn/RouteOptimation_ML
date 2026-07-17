@@ -16,6 +16,63 @@ from .ai_core.evaluator import RouteEvaluator
 import pandas as pd
 import numpy as np
 import time
+import folium
+
+
+def generate_route_map(route, delivery_points, depot_lat, depot_lon):
+    """Generate Folium map for route visualization"""
+    # Create map centered on depot
+    m = folium.Map(
+        location=[depot_lat, depot_lon],
+        zoom_start=12,
+        tiles='OpenStreetMap'
+    )
+    
+    # Add depot marker
+    folium.Marker(
+        location=[depot_lat, depot_lon],
+        popup='Depot (Start/End)',
+        tooltip='Depot',
+        icon=folium.Icon(color='red', icon='home', prefix='fa')
+    ).add_to(m)
+    
+    # Add delivery point markers
+    for i, node_id in enumerate(route[1:], 1):  # Skip depot (first item)
+        if node_id == 0:  # Skip if returning to depot
+            continue
+        
+        try:
+            point = delivery_points.get(node_id=node_id)
+            folium.Marker(
+                location=[point.latitude, point.longitude],
+                popup=f'Node {node_id}<br>Order: {i}<br>Demand: {point.demand}',
+                tooltip=f'#{i}: Node {node_id}',
+                icon=folium.Icon(color='blue', icon='info-sign')
+            ).add_to(m)
+        except:
+            pass
+    
+    # Draw route lines
+    route_coords = [[depot_lat, depot_lon]]
+    for node_id in route[1:]:
+        if node_id == 0:
+            route_coords.append([depot_lat, depot_lon])
+        else:
+            try:
+                point = delivery_points.get(node_id=node_id)
+                route_coords.append([point.latitude, point.longitude])
+            except:
+                pass
+    
+    folium.PolyLine(
+        locations=route_coords,
+        color='green',
+        weight=3,
+        opacity=0.7,
+        tooltip='Optimized Route'
+    ).add_to(m)
+    
+    return m._repr_html_()
 
 
 def dashboard(request):
@@ -86,6 +143,10 @@ def run_optimization(request):
             beta = aco_form.cleaned_data['beta']
             rho = aco_form.cleaned_data['rho']
             Q = aco_form.cleaned_data['Q']
+            
+            # Save depot coordinates to session for map generation
+            request.session['depot_lat'] = depot_lat
+            request.session['depot_lon'] = depot_lon
             
             # Get delivery points
             delivery_points = DeliveryPoint.objects.all()
@@ -178,9 +239,25 @@ def result(request):
     opt_run = OptimizationRun.objects.get(id=run_id)
     comparison = opt_run.comparisons.first()
     
+    # Generate Folium map
+    delivery_points = DeliveryPoint.objects.all()
+    depot_lat = request.session.get('depot_lat', -7.164340)  # Default Gresik
+    depot_lon = request.session.get('depot_lon', 112.651680)
+    
+    try:
+        map_html = generate_route_map(
+            opt_run.route_json, 
+            delivery_points, 
+            depot_lat, 
+            depot_lon
+        )
+    except Exception as e:
+        map_html = f'<p class="text-red-500">Error generating map: {str(e)}</p>'
+    
     context = {
         'opt_run': opt_run,
-        'comparison': comparison
+        'comparison': comparison,
+        'map_html': map_html
     }
     
     return render(request, 'routing/result.html', context)
