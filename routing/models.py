@@ -18,7 +18,7 @@ class DeliveryPoint(models.Model):
     time_window_open = models.CharField(max_length=10, default='08:00')
     time_window_close = models.CharField(max_length=10, default='17:00')
     service_time = models.IntegerField(default=5, help_text="Service time in minutes")
-    priority = models.IntegerField(default=2, choices=[(1, 'High'), (2, 'Medium'), (3, 'Low')])
+    priority = models.IntegerField(default=2, choices=[(1, 'Utama'), (2, 'Biasa')])
     road_status = models.BooleanField(default=True, help_text="True if road is accessible")
     created_at = models.DateTimeField(auto_now_add=True)
     

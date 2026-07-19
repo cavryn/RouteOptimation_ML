@@ -62,8 +62,7 @@
 .node-id-link:hover { text-decoration: underline; }
 
 .priority-high   { background: #fee2e2; color: #dc2626; }
-.priority-medium { background: #fef3c7; color: #d97706; }
-.priority-low    { background: #d1fae5; color: #059669; }
+.priority-medium { background: #d1fae5; color: #059669; }
 
 .status-text-pending { color: #6b7280; display:flex; align-items:center; gap:5px; }
 .status-text-process { color: #3b82f6; display:flex; align-items:center; gap:5px; }
@@ -220,19 +219,14 @@
         <input type="text" id="search-input" placeholder="Cari node, prioritas, atau status..." onkeyup="filterTable()">
     </div>
 
-    <select id="priority-filter" onchange="filterTable()" style="width:160px;">
+    <select id="priority-filter" onchange="filterTable()" style="width:130px;">
         <option value="">Semua Prioritas</option>
-        <option value="High">Tinggi</option>
-        <option value="Medium">Sedang</option>
-        <option value="Low">Rendah</option>
-    </select>
-
-    <select id="road-filter" onchange="filterTable()" style="width:150px;">
-        <option value="">Semua Status</option>
-        <option value="Open">Jalan Terbuka</option>
-        <option value="Closed">Jalan Ditutup</option>
+        <option value="Utama">Utama</option>
+        <option value="Biasa">Biasa</option>
     </select>
 </div>
+
+
 
 <!-- Table Card -->
 <div class="card" style="padding: 0; overflow: hidden;">
@@ -250,7 +244,7 @@
                     <th>Demand</th>
                     <th>Prioritas</th>
                     <th>Time Window</th>
-                    <th>Status Jalan</th>
+
                     <th>Aksi</th>
                 </tr>
             </thead>
@@ -283,28 +277,19 @@
                         <span style="color:var(--text-muted); font-size:11px;"> unit</span>
                     </td>
                     <td>
-                        <span class="badge {% if point.priority == 1 %}priority-high{% elif point.priority == 2 %}priority-medium{% else %}priority-low{% endif %}">
+                        <span class="badge {% if point.priority == 1 %}priority-high{% else %}priority-medium{% endif %}">
                             {{ point.get_priority_display }}
                         </span>
                     </td>
                     <td style="color:var(--text-secondary); font-size:13px;">
                         {{ point.time_window_open }} – {{ point.time_window_close }}
                     </td>
-                    <td>
-                        {% if point.road_status %}
-                            <span class="road-open">
-                                <span class="status-dot dot-green" style="display:inline-block; margin-right:4px;"></span>
-                                Terbuka
-                            </span>
-                        {% else %}
-                            <span class="road-closed">
-                                <span class="status-dot dot-red" style="display:inline-block; margin-right:4px;"></span>
-                                Ditutup
-                            </span>
-                        {% endif %}
-                    </td>
+
                     <td>
                         <div style="display:flex; gap:6px;">
+                            <a href="{% url 'edit_paket' point.node_id %}" class="action-btn action-btn-view" title="Edit">
+                                <span class="material-icons-round">edit</span>
+                            </a>
                             <button
                                 class="action-btn action-btn-del"
                                 title="Hapus"
@@ -317,7 +302,7 @@
                 </tr>
                 {% empty %}
                 <tr>
-                    <td colspan="7">
+                    <td colspan="6">
                         <div class="empty-state">
                             <span class="material-icons-round">inbox</span>
                             <h3>Belum Ada Data</h3>

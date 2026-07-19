@@ -180,13 +180,18 @@ class ACOOptimizer:
     def _decode_solution(self, solution: np.ndarray, n_nodes: int, constraints_df: pd.DataFrame) -> List[int]:
         """Decode continuous solution to discrete route"""
         route = [0]  # Start from depot
-        
-        # Sort nodes by solution values (pheromone-based ordering)
-        node_values = [(i+1, solution[i]) for i in range(len(solution))]
-        sorted_nodes = sorted(node_values, key=lambda x: x[1])
+        # Build node priorities dictionary
+        node_priorities = {}
+        for node_id in range(1, len(constraints_df)):
+            node_priorities[node_id] = constraints_df.iloc[node_id].get('priority', 2)
+            
+        # Sort nodes by (priority, solution_value)
+        node_values = [(i+1, node_priorities.get(i+1, 2), solution[i]) for i in range(len(solution))]
+        # Sorting key: Priority first (1 then 2), then ACO value
+        sorted_nodes = sorted(node_values, key=lambda x: (x[1], x[2]))
         
         # Build route excluding closed roads
-        for node_id, _ in sorted_nodes:
+        for node_id, _, _ in sorted_nodes:
             if node_id < len(constraints_df):
                 if constraints_df.iloc[node_id].get('road_status', True):
                     route.append(node_id)

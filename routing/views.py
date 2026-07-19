@@ -48,7 +48,23 @@ def generate_route_map(route, delivery_points, depot_lat, depot_lon):
                 location=[point.latitude, point.longitude],
                 popup=f'Node {node_id}<br>Order: {i}<br>Demand: {point.demand}',
                 tooltip=f'#{i}: Node {node_id}',
-                icon=folium.Icon(color='blue', icon='info-sign')
+                icon=folium.DivIcon(html=f"""
+                    <div style="
+                        background-color: #3b82f6;
+                        color: white;
+                        border-radius: 50%;
+                        width: 24px;
+                        height: 24px;
+                        display: flex;
+                        align-items: center;
+                        justify-content: center;
+                        font-size: 11px;
+                        font-weight: bold;
+                        border: 2px solid white;
+                        box-shadow: 0 2px 4px rgba(0,0,0,0.3);
+                        transform: translate(-12px, -12px);
+                    ">{node_id}</div>
+                """)
             ).add_to(m)
         except:
             pass
@@ -196,7 +212,7 @@ def generate_sample_data(request):
                     time_window_open='08:00',
                     time_window_close='17:00',
                     service_time=np.random.randint(3, 12),
-                    priority=np.random.choice([1, 2, 3]),
+                    priority=np.random.choice([1, 2]),
                     road_status=np.random.choice([True, True, True, False])  # 25% blocked
                 )
 
@@ -456,6 +472,23 @@ def tambah_paket(request):
         })
         
     return render(request, 'routing/tambah_paket.html', {'form': form})
+
+def edit_paket(request, node_id):
+    """View untuk mengubah data paket pengiriman"""
+    from django.shortcuts import get_object_or_404
+    point = get_object_or_404(DeliveryPoint, node_id=node_id)
+    if request.method == 'POST':
+        form = DeliveryPointForm(request.POST, instance=point)
+        if form.is_valid():
+            form.save()
+            messages.success(request, f'Paket (Node {node_id}) berhasil diperbarui!')
+            return redirect('data_paket')
+        else:
+            messages.error(request, 'Gagal memperbarui paket. Periksa kembali data Anda.')
+    else:
+        form = DeliveryPointForm(instance=point)
+        
+    return render(request, 'routing/edit_paket.html', {'form': form, 'point': point})
 
 
 def live_map(request):
