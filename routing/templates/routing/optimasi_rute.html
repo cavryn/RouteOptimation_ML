@@ -15,10 +15,10 @@
 {% block extra_styles %}
 .opt-layout {
     display: grid;
-    grid-template-columns: 300px 1fr;
+    grid-template-columns: 320px 1fr;
     gap: 20px;
-    height: calc(100vh - 64px - 56px - 56px);
-    min-height: 580px;
+    height: calc(100vh - 120px);
+    min-height: 600px;
 }
 
 .param-panel {
@@ -111,6 +111,7 @@
     overflow: hidden;
     display: flex;
     flex-direction: column;
+    position: relative;
 }
 
 .map-panel iframe,
@@ -137,9 +138,18 @@
 .map-stats-bar {
     display: flex;
     align-items: center;
-    gap: 0;
-    border-top: 1px solid var(--border);
     padding: 0;
+    
+    position: absolute;
+    bottom: 20px;
+    left: 20px;
+    right: 20px;
+    background: rgba(255, 255, 255, 0.95);
+    border-radius: 12px;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+    border: 1px solid var(--border);
+    backdrop-filter: blur(5px);
+    z-index: 1000;
 }
 
 .map-stat {

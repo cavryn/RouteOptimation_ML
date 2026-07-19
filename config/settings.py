@@ -10,7 +10,11 @@ For the full list of settings and their values, see
 https://docs.djangoproject.com/en/6.0/ref/settings/
 """
 
+import os
 from pathlib import Path
+from dotenv import load_dotenv
+
+load_dotenv()
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -26,6 +30,9 @@ SECRET_KEY = 'django-insecure-li9fysq$80(bu=3fs#t^z9(&0a3nky1+9k)9!b!*w-mbojzw-&
 DEBUG = True
 
 ALLOWED_HOSTS = []
+
+# TomTom API Key
+TOMTOM_API_KEY = os.environ.get("TOMTOM_API_KEY", "")
 
 
 # Application definition

@@ -11,7 +11,7 @@ from .models import OptimizationRun, ComparisonResult, DeliveryPoint
 from .forms import DepotForm, ACOParametersForm, GenerateSampleDataForm, DeliveryPointForm
 from .ai_core.aco_optimizer import ACOOptimizer
 from .ai_core.baseline_nn import NearestNeighborBaseline
-from .ai_core.osrm_client import OSRMClient
+from .ai_core.tomtom_client import TomTomClient
 from .ai_core.evaluator import RouteEvaluator
 import pandas as pd
 import numpy as np
@@ -66,14 +66,12 @@ def generate_route_map(route, delivery_points, depot_lat, depot_lon):
                 pass
 
     # Try to get actual road geometry
-    client = OSRMClient()
-    # OSRM public API has a limit on waypoints per request (usually 100).
-    # If the number of waypoints is large, we should chunk it, 
-    # but for typical 30-50 node routes, a single request works.
+    client = TomTomClient()
+    # TomTom Calculate Route max waypoints is 150. We can send all at once.
+    # However, to be safe we chunk by 140
     
-    # We will query in chunks of 50 to be safe with public OSRM APIs
     route_geometry = []
-    chunk_size = 50
+    chunk_size = 140
     for i in range(0, len(waypoints) - 1, chunk_size - 1):
         chunk = waypoints[i:i + chunk_size]
         geom = client.get_route_geometry(chunk)
@@ -192,9 +190,9 @@ def generate_sample_data(request):
             for i in range(1, n_nodes + 1):
                 DeliveryPoint.objects.create(
                     node_id=i,
-                    latitude=np.random.uniform(-7.35, -7.10),
-                    longitude=np.random.uniform(112.55, 112.75),
-                    demand=np.random.randint(1, 6),
+                    latitude=round(float(np.random.uniform(-7.19, -7.15)), 6),
+                    longitude=round(float(np.random.uniform(112.58, 112.64)), 6),
+                    demand=int(np.random.randint(1, 5)),
                     time_window_open='08:00',
                     time_window_close='17:00',
                     service_time=np.random.randint(3, 12),
@@ -298,10 +296,10 @@ def run_optimization(request):
             df_with_depot['tw_open_min'] = 0
             df_with_depot['tw_close_min'] = 1440
 
-            # Get distance matrix
-            osrm_client = OSRMClient()
+            # Get travel time matrix (minutes)
+            tomtom_client = TomTomClient()
             coords = [(row['longitude'], row['latitude']) for _, row in df_with_depot.iterrows()]
-            distance_matrix = osrm_client.get_distance_matrix(coords)
+            distance_matrix = tomtom_client.get_distance_matrix(coords)
 
             # Run ACO
             start_time = time.time()
@@ -343,7 +341,7 @@ def run_optimization(request):
             # Store in session for result page
             request.session['latest_run_id'] = opt_run.id
 
-            messages.success(request, f'Optimasi selesai dalam {aco_time:.2f} detik! Jarak total: {comparison["aco"]["total_distance_km"]:.2f} km')
+            messages.success(request, f'Optimasi selesai dalam {aco_time:.2f} detik! Waktu tempuh: {comparison["aco"]["total_distance_km"]:.1f} Menit')
             return redirect('result')
         else:
             messages.error(request, 'Parameter tidak valid. Periksa kembali input Anda.')

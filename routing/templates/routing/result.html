@@ -381,14 +381,14 @@
 
         <div class="metric-card">
             <div class="metric-label">
-                Total Jarak
+                Waktu Tempuh (Live)
                 <div class="metric-icon mi-green">
-                    <span class="material-icons-round">route</span>
+                    <span class="material-icons-round">schedule</span>
                 </div>
             </div>
             <div>
                 <span class="metric-value">{{ opt_run.total_distance_km|floatformat:1 }}</span>
-                <span class="metric-unit">km</span>
+                <span class="metric-unit">menit</span>
             </div>
             {% if comparison and comparison.improvement_pct > 0 %}
             <div class="metric-sub green">
@@ -477,16 +477,16 @@
             <div class="metric-label" style="margin-bottom:12px;">vs Baseline (NN)</div>
             <div class="comparison-row">
                 <span class="comparison-lbl">ACO</span>
-                <span class="comparison-val text-primary">{{ comparison.aco_distance_km|floatformat:1 }} km</span>
+                <span class="comparison-val text-primary">{{ comparison.aco_distance_km|floatformat:1 }} menit</span>
             </div>
             <div class="comparison-row">
                 <span class="comparison-lbl">Baseline</span>
-                <span class="comparison-val" style="color:var(--text-secondary);">{{ comparison.baseline_distance_km|floatformat:1 }} km</span>
+                <span class="comparison-val" style="color:var(--text-secondary);">{{ comparison.baseline_distance_km|floatformat:1 }} menit</span>
             </div>
             <div class="comparison-row">
                 <span class="comparison-lbl">Penghematan</span>
                 <span class="comparison-val {% if comparison.aco_better %}text-green{% else %}text-red{% endif %}">
-                    {{ comparison.improvement_km|floatformat:1 }} km
+                    {{ comparison.improvement_km|floatformat:1 }} menit
                 </span>
             </div>
         </div>
