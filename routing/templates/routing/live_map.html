@@ -1,0 +1,42 @@
+{% extends 'routing/base.html' %}
+
+{% block title %}Live Map — RouteOpt AI{% endblock %}
+{% block nav_live_map %}active{% endblock %}
+{% block page_title %}Live Map{% endblock %}
+{% block page_subtitle %}Pantau posisi kurir secara real-time{% endblock %}
+
+{% block extra_styles %}
+.map-full {
+    height: calc(100vh - 64px - 56px - 56px);
+    min-height: 500px;
+    background: var(--white);
+    border-radius: var(--radius);
+    box-shadow: var(--shadow);
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+}
+{% endblock %}
+
+{% block content %}
+<div class="map-full">
+    <span class="material-icons-round" style="font-size:72px; color:var(--border); margin-bottom:20px;">map</span>
+    <h2 style="font-size:20px; font-weight:700; margin-bottom:8px;">Live Map</h2>
+    <p style="font-size:14px; color:var(--text-secondary); margin-bottom:24px; text-align:center; max-width:360px;">
+        Fitur pemantauan lokasi kurir secara real-time akan segera hadir.
+        Saat ini Anda dapat melihat peta rute di halaman <strong>Hasil Optimasi</strong>.
+    </p>
+    <div style="display:flex; gap:12px; flex-wrap:wrap; justify-content:center;">
+        <a href="{% url 'result' %}" class="btn btn-primary">
+            <span class="material-icons-round">route</span>
+            Lihat Hasil Optimasi
+        </a>
+        <a href="{% url 'optimasi_rute' %}" class="btn btn-secondary">
+            <span class="material-icons-round">tune</span>
+            Buat Rute Baru
+        </a>
+    </div>
+</div>
+{% endblock %}

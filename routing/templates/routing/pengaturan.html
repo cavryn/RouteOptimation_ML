@@ -1,0 +1,147 @@
+{% extends 'routing/base.html' %}
+
+{% block title %}Pengaturan — RouteOpt AI{% endblock %}
+{% block nav_pengaturan %}active{% endblock %}
+{% block page_title %}Pengaturan{% endblock %}
+{% block page_subtitle %}Konfigurasi sistem dan preferensi aplikasi{% endblock %}
+
+{% block extra_styles %}
+.settings-section {
+    background: var(--white);
+    border-radius: var(--radius);
+    box-shadow: var(--shadow);
+    margin-bottom: 20px;
+    overflow: hidden;
+}
+.settings-section-header {
+    padding: 16px 24px;
+    border-bottom: 1px solid var(--border);
+    display: flex; align-items: center; gap: 10px;
+}
+.settings-section-header .material-icons-round { color: var(--accent); font-size: 20px; }
+.settings-section-title { font-size: 14px; font-weight: 700; }
+.settings-row {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 14px 24px;
+    border-bottom: 1px solid var(--border);
+    gap: 20px;
+}
+.settings-row:last-child { border-bottom: none; }
+.settings-row-label { font-size: 13px; font-weight: 600; color: var(--text-primary); }
+.settings-row-desc { font-size: 12px; color: var(--text-secondary); margin-top: 2px; }
+.toggle-switch {
+    position: relative; width: 44px; height: 24px; flex-shrink: 0;
+}
+.toggle-switch input { opacity: 0; width: 0; height: 0; }
+.toggle-slider {
+    position: absolute; inset: 0;
+    background: #d1d5db; border-radius: 24px; cursor: pointer; transition: 0.3s;
+}
+.toggle-slider::before {
+    content: ''; position: absolute;
+    width: 18px; height: 18px; left: 3px; bottom: 3px;
+    background: white; border-radius: 50%; transition: 0.3s;
+}
+.toggle-switch input:checked + .toggle-slider { background: var(--accent); }
+.toggle-switch input:checked + .toggle-slider::before { transform: translateX(20px); }
+{% endblock %}
+
+{% block content %}
+
+<!-- Profil -->
+<div class="settings-section">
+    <div class="settings-section-header">
+        <span class="material-icons-round">person</span>
+        <div class="settings-section-title">Profil Administrator</div>
+    </div>
+    <div class="settings-row">
+        <div><div class="settings-row-label">Nama</div><div class="settings-row-desc">Nama tampilan akun</div></div>
+        <input type="text" value="Admin" style="width:200px;">
+    </div>
+    <div class="settings-row">
+        <div><div class="settings-row-label">Role</div><div class="settings-row-desc">Level akses sistem</div></div>
+        <input type="text" value="Administrator" style="width:200px;" readonly>
+    </div>
+</div>
+
+<!-- ACO Default -->
+<div class="settings-section">
+    <div class="settings-section-header">
+        <span class="material-icons-round">psychology</span>
+        <div class="settings-section-title">Parameter ACO Default</div>
+    </div>
+    <div class="settings-row">
+        <div><div class="settings-row-label">Jumlah Semut (n_ants)</div><div class="settings-row-desc">Default: 20</div></div>
+        <input type="number" value="20" style="width:100px;">
+    </div>
+    <div class="settings-row">
+        <div><div class="settings-row-label">Iterasi (n_iterations)</div><div class="settings-row-desc">Default: 200</div></div>
+        <input type="number" value="200" style="width:100px;">
+    </div>
+    <div class="settings-row">
+        <div><div class="settings-row-label">Alpha (α)</div><div class="settings-row-desc">Bobot feromon (default: 1.0)</div></div>
+        <input type="number" step="0.1" value="1.0" style="width:100px;">
+    </div>
+    <div class="settings-row">
+        <div><div class="settings-row-label">Beta (β)</div><div class="settings-row-desc">Bobot visibilitas (default: 2.0)</div></div>
+        <input type="number" step="0.1" value="2.0" style="width:100px;">
+    </div>
+</div>
+
+<!-- Depot Default -->
+<div class="settings-section">
+    <div class="settings-section-header">
+        <span class="material-icons-round">home</span>
+        <div class="settings-section-title">Depot Default</div>
+    </div>
+    <div class="settings-row">
+        <div><div class="settings-row-label">Nama Depot</div></div>
+        <input type="text" value="Depot Gresik Kota" style="width:220px;">
+    </div>
+    <div class="settings-row">
+        <div><div class="settings-row-label">Latitude</div></div>
+        <input type="number" step="0.00001" value="-7.16434" style="width:160px;">
+    </div>
+    <div class="settings-row">
+        <div><div class="settings-row-label">Longitude</div></div>
+        <input type="number" step="0.00001" value="112.65168" style="width:160px;">
+    </div>
+</div>
+
+<!-- Preferensi -->
+<div class="settings-section">
+    <div class="settings-section-header">
+        <span class="material-icons-round">tune</span>
+        <div class="settings-section-title">Preferensi Sistem</div>
+    </div>
+    <div class="settings-row">
+        <div>
+            <div class="settings-row-label">Auto-simpan hasil optimasi</div>
+            <div class="settings-row-desc">Simpan otomatis ke database setiap selesai optimasi</div>
+        </div>
+        <label class="toggle-switch">
+            <input type="checkbox" checked>
+            <span class="toggle-slider"></span>
+        </label>
+    </div>
+    <div class="settings-row">
+        <div>
+            <div class="settings-row-label">Tampilkan notifikasi</div>
+            <div class="settings-row-desc">Notifikasi status optimasi di topbar</div>
+        </div>
+        <label class="toggle-switch">
+            <input type="checkbox" checked>
+            <span class="toggle-slider"></span>
+        </label>
+    </div>
+</div>
+
+<div style="display:flex; justify-content:flex-end; gap:12px;">
+    <button class="btn btn-secondary">Reset Default</button>
+    <button class="btn btn-primary">
+        <span class="material-icons-round">save</span>
+        Simpan Pengaturan
+    </button>
+</div>
+
+{% endblock %}

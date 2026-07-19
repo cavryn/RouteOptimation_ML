@@ -1,0 +1,64 @@
+{% extends 'routing/base.html' %}
+
+{% block title %}Statistik — RouteOpt AI{% endblock %}
+{% block nav_statistik %}active{% endblock %}
+{% block page_title %}Statistik{% endblock %}
+{% block page_subtitle %}Analisis performa optimasi rute dari waktu ke waktu{% endblock %}
+
+{% block extra_styles %}
+.stats-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; margin-bottom: 20px; }
+.coming-soon-card {
+    background: var(--white);
+    border-radius: var(--radius);
+    box-shadow: var(--shadow);
+    padding: 40px 24px;
+    text-align: center;
+}
+.coming-icon { font-size: 56px; color: var(--border); display: block; margin: 0 auto 16px; }
+{% endblock %}
+
+{% block content %}
+
+<div class="grid-4 mb-6">
+    <div class="stat-card">
+        <div>
+            <div class="stat-label">Total Runs</div>
+            <div class="stat-value">{{ total_runs|default:"0" }}</div>
+        </div>
+        <div class="stat-icon stat-icon-blue"><span class="material-icons-round">bar_chart</span></div>
+    </div>
+    <div class="stat-card">
+        <div>
+            <div class="stat-label">Rata-rata Jarak</div>
+            <div class="stat-value">{{ avg_distance|default:"—" }} <span style="font-size:16px;font-weight:400;">km</span></div>
+        </div>
+        <div class="stat-icon stat-icon-green"><span class="material-icons-round">route</span></div>
+    </div>
+    <div class="stat-card">
+        <div>
+            <div class="stat-label">Kelayakan Rata-rata</div>
+            <div class="stat-value">{{ avg_feasibility|default:"—" }}{% if avg_feasibility %}%{% endif %}</div>
+        </div>
+        <div class="stat-icon stat-icon-purple"><span class="material-icons-round">verified</span></div>
+    </div>
+    <div class="stat-card">
+        <div>
+            <div class="stat-label">Rata-rata Waktu Komputasi</div>
+            <div class="stat-value">{{ avg_time|default:"—" }} <span style="font-size:16px;font-weight:400;">s</span></div>
+        </div>
+        <div class="stat-icon stat-icon-orange"><span class="material-icons-round">timer</span></div>
+    </div>
+</div>
+
+<div class="coming-soon-card">
+    <span class="material-icons-round coming-icon">analytics</span>
+    <h2 style="font-size:18px; font-weight:700; margin-bottom:8px;">Analisis Lanjutan Segera Hadir</h2>
+    <p style="font-size:13px; color:var(--text-secondary); max-width:400px; margin: 0 auto 20px;">
+        Dashboard statistik lanjutan termasuk grafik tren, perbandingan algoritma, dan heatmap distribusi pengiriman akan segera tersedia.
+    </p>
+    <a href="{% url 'history' %}" class="btn btn-primary">
+        <span class="material-icons-round">history</span>
+        Lihat Riwayat Optimasi
+    </a>
+</div>
+{% endblock %}

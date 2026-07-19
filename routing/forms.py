@@ -16,15 +16,15 @@ class DeliveryPointForm(forms.ModelForm):
                   'time_window_open', 'time_window_close', 'service_time', 
                   'priority', 'road_status']
         widgets = {
-            'node_id': forms.NumberInput(attrs={'class': 'form-input rounded-lg border-gray-300'}),
-            'latitude': forms.NumberInput(attrs={'class': 'form-input rounded-lg border-gray-300', 'step': '0.000001'}),
-            'longitude': forms.NumberInput(attrs={'class': 'form-input rounded-lg border-gray-300', 'step': '0.000001'}),
-            'demand': forms.NumberInput(attrs={'class': 'form-input rounded-lg border-gray-300'}),
-            'time_window_open': forms.TextInput(attrs={'class': 'form-input rounded-lg border-gray-300', 'placeholder': 'HH:MM'}),
-            'time_window_close': forms.TextInput(attrs={'class': 'form-input rounded-lg border-gray-300', 'placeholder': 'HH:MM'}),
-            'service_time': forms.NumberInput(attrs={'class': 'form-input rounded-lg border-gray-300'}),
-            'priority': forms.Select(attrs={'class': 'form-select rounded-lg border-gray-300'}),
-            'road_status': forms.CheckboxInput(attrs={'class': 'form-checkbox rounded'}),
+            'node_id': forms.NumberInput(attrs={}),
+            'latitude': forms.NumberInput(attrs={'step': '0.000001'}),
+            'longitude': forms.NumberInput(attrs={'step': '0.000001'}),
+            'demand': forms.NumberInput(attrs={}),
+            'time_window_open': forms.TextInput(attrs={'placeholder': 'HH:MM'}),
+            'time_window_close': forms.TextInput(attrs={'placeholder': 'HH:MM'}),
+            'service_time': forms.NumberInput(attrs={}),
+            'priority': forms.Select(attrs={}),
+            'road_status': forms.CheckboxInput(attrs={}),
         }
 
 
@@ -33,7 +33,6 @@ class DepotForm(forms.Form):
     depot_latitude = forms.FloatField(
         initial=-7.164340,
         widget=forms.NumberInput(attrs={
-            'class': 'form-input rounded-lg border-gray-300 w-full',
             'step': '0.000001',
             'placeholder': 'e.g., -7.164340'
         }),
@@ -42,7 +41,6 @@ class DepotForm(forms.Form):
     depot_longitude = forms.FloatField(
         initial=112.651680,
         widget=forms.NumberInput(attrs={
-            'class': 'form-input rounded-lg border-gray-300 w-full',
             'step': '0.000001',
             'placeholder': 'e.g., 112.651680'
         }),
@@ -56,11 +54,8 @@ class ACOParametersForm(forms.Form):
         initial=20,
         min_value=5,
         max_value=100,
-        widget=forms.NumberInput(attrs={
-            'class': 'form-input rounded-lg border-gray-300 w-full',
-            'placeholder': '10-100'
-        }),
-        label='Number of Ants',
+        widget=forms.NumberInput(attrs={'placeholder': '10-100'}),
+        label='Jumlah Semut',
         help_text='Jumlah semut dalam koloni (recommended: 20)'
     )
     
@@ -68,11 +63,8 @@ class ACOParametersForm(forms.Form):
         initial=200,
         min_value=50,
         max_value=500,
-        widget=forms.NumberInput(attrs={
-            'class': 'form-input rounded-lg border-gray-300 w-full',
-            'placeholder': '50-500'
-        }),
-        label='Maximum Iterations',
+        widget=forms.NumberInput(attrs={'placeholder': '50-500'}),
+        label='Iterasi Maksimum',
         help_text='Jumlah iterasi maksimum (recommended: 200)'
     )
     
@@ -80,12 +72,8 @@ class ACOParametersForm(forms.Form):
         initial=1.0,
         min_value=0.0,
         max_value=5.0,
-        widget=forms.NumberInput(attrs={
-            'class': 'form-input rounded-lg border-gray-300 w-full',
-            'step': '0.1',
-            'placeholder': '0.0-5.0'
-        }),
-        label='Alpha (α) - Pheromone Weight',
+        widget=forms.NumberInput(attrs={'step': '0.1', 'placeholder': '0.0-5.0'}),
+        label='Alpha (α)',
         help_text='Bobot pheromone (recommended: 1.0)'
     )
     
@@ -93,12 +81,8 @@ class ACOParametersForm(forms.Form):
         initial=2.0,
         min_value=0.0,
         max_value=5.0,
-        widget=forms.NumberInput(attrs={
-            'class': 'form-input rounded-lg border-gray-300 w-full',
-            'step': '0.1',
-            'placeholder': '0.0-5.0'
-        }),
-        label='Beta (β) - Heuristic Weight',
+        widget=forms.NumberInput(attrs={'step': '0.1', 'placeholder': '0.0-5.0'}),
+        label='Beta (β)',
         help_text='Bobot informasi heuristik (recommended: 2.0)'
     )
     
@@ -106,12 +90,8 @@ class ACOParametersForm(forms.Form):
         initial=0.5,
         min_value=0.0,
         max_value=1.0,
-        widget=forms.NumberInput(attrs={
-            'class': 'form-input rounded-lg border-gray-300 w-full',
-            'step': '0.01',
-            'placeholder': '0.0-1.0'
-        }),
-        label='Rho (ρ) - Evaporation Rate',
+        widget=forms.NumberInput(attrs={'step': '0.01', 'placeholder': '0.0-1.0'}),
+        label='Rho (ρ)',
         help_text='Tingkat penguapan pheromone (recommended: 0.5)'
     )
     
@@ -119,12 +99,8 @@ class ACOParametersForm(forms.Form):
         initial=100.0,
         min_value=1.0,
         max_value=1000.0,
-        widget=forms.NumberInput(attrs={
-            'class': 'form-input rounded-lg border-gray-300 w-full',
-            'step': '1.0',
-            'placeholder': '1-1000'
-        }),
-        label='Q - Pheromone Constant',
+        widget=forms.NumberInput(attrs={'step': '1.0', 'placeholder': '1-1000'}),
+        label='Q Konstan',
         help_text='Konstanta pheromone (recommended: 100)'
     )
 
@@ -135,22 +111,16 @@ class GenerateSampleDataForm(forms.Form):
         initial=30,
         min_value=10,
         max_value=50,
-        widget=forms.NumberInput(attrs={
-            'class': 'form-input rounded-lg border-gray-300 w-full',
-            'placeholder': '10-50'
-        }),
-        label='Number of Delivery Points',
+        widget=forms.NumberInput(attrs={'placeholder': '10-50'}),
+        label='Jumlah Titik Pengiriman',
         help_text='Jumlah titik pengiriman untuk di-generate (10-50 nodes)'
     )
     
     seed = forms.IntegerField(
         initial=42,
         required=False,
-        widget=forms.NumberInput(attrs={
-            'class': 'form-input rounded-lg border-gray-300 w-full',
-            'placeholder': 'Random seed (optional)'
-        }),
-        label='Random Seed (Optional)',
+        widget=forms.NumberInput(attrs={'placeholder': 'Random seed (optional)'}),
+        label='Random Seed',
         help_text='Untuk reproducible results'
     )
 

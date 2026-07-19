@@ -1,0 +1,450 @@
+{% extends 'routing/base.html' %}
+
+{% block title %}Optimasi Rute — RouteOpt AI{% endblock %}
+{% block nav_optimasi %}active{% endblock %}
+{% block page_title %}Optimasi Rute{% endblock %}
+{% block page_subtitle %}Tentukan parameter dan hitung rute pengiriman optimal{% endblock %}
+
+{% block topbar_extra %}
+<a href="{% url 'dashboard' %}" class="btn btn-secondary btn-sm">
+    <span class="material-icons-round">refresh</span>
+    Reset
+</a>
+{% endblock %}
+
+{% block extra_styles %}
+.opt-layout {
+    display: grid;
+    grid-template-columns: 300px 1fr;
+    gap: 20px;
+    height: calc(100vh - 64px - 56px - 56px);
+    min-height: 580px;
+}
+
+.param-panel {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+    overflow-y: auto;
+    padding-right: 4px;
+}
+
+.param-card {
+    background: var(--white);
+    border-radius: var(--radius);
+    box-shadow: var(--shadow);
+    padding: 20px;
+}
+
+.param-title {
+    font-size: 14px;
+    font-weight: 700;
+    color: var(--text-primary);
+    margin-bottom: 16px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+
+.param-title .material-icons-round {
+    font-size: 16px;
+    color: var(--text-muted);
+    cursor: pointer;
+}
+
+.time-row {
+    display: grid;
+    grid-template-columns: 1fr auto 1fr;
+    align-items: center;
+    gap: 8px;
+}
+
+.time-sep {
+    font-size: 12px;
+    color: var(--text-secondary);
+    font-weight: 500;
+    text-align: center;
+}
+
+.warning-box {
+    background: #fef9f0;
+    border: 1px solid #fbbf24;
+    border-radius: 8px;
+    padding: 12px;
+    display: flex;
+    align-items: flex-start;
+    gap: 8px;
+    font-size: 12px;
+}
+
+.warning-box .material-icons-round { font-size: 16px; color: #d97706; flex-shrink: 0; margin-top: 1px; }
+.warning-title { font-weight: 600; color: #92400e; margin-bottom: 2px; }
+.warning-sub { color: #b45309; }
+
+.dataset-card {
+    background: #eff6ff;
+    border: 1px solid #bfdbfe;
+    border-radius: 10px;
+    padding: 14px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.dataset-icon {
+    width: 36px; height: 36px;
+    background: #dbeafe;
+    border-radius: 8px;
+    display: flex; align-items: center; justify-content: center;
+    flex-shrink: 0;
+}
+
+.dataset-icon .material-icons-round { font-size: 18px; color: #2563eb; }
+
+.dataset-label { font-size: 12px; font-weight: 600; color: var(--text-primary); }
+.dataset-sub { font-size: 11px; color: var(--text-secondary); margin-top: 2px; }
+
+.map-panel {
+    background: var(--white);
+    border-radius: var(--radius);
+    box-shadow: var(--shadow);
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+}
+
+.map-panel iframe,
+.map-panel .map-placeholder,
+.map-panel > div:last-child {
+    flex: 1;
+}
+
+.map-placeholder {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    background: #f8faff;
+    color: var(--text-muted);
+    gap: 12px;
+    min-height: 400px;
+}
+
+.map-placeholder .material-icons-round { font-size: 56px; color: var(--border); }
+.map-placeholder h3 { font-size: 15px; font-weight: 700; color: var(--text-secondary); }
+.map-placeholder p { font-size: 13px; }
+
+.map-stats-bar {
+    display: flex;
+    align-items: center;
+    gap: 0;
+    border-top: 1px solid var(--border);
+    padding: 0;
+}
+
+.map-stat {
+    flex: 1;
+    padding: 12px 16px;
+    border-right: 1px solid var(--border);
+    text-align: center;
+}
+
+.map-stat:last-child { border-right: none; }
+.map-stat-label { font-size: 10px; color: var(--text-muted); font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em; }
+.map-stat-value {
+    font-size: 14px; font-weight: 800; margin-top: 2px;
+}
+.map-stat-value.green { color: var(--green); background: none; padding: 0; }
+.map-stat-value.blue { color: #3b82f6; }
+.map-stat-value.orange { color: #d97706; }
+
+.generate-strip {
+    background: var(--white);
+    border-radius: var(--radius);
+    box-shadow: var(--shadow);
+    padding: 14px 20px;
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    flex-wrap: wrap;
+    margin-top: 16px;
+}
+
+.generate-strip-title {
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--text-primary);
+    flex: 1;
+}
+
+.generate-strip p {
+    font-size: 12px;
+    color: var(--text-secondary);
+}
+{% endblock %}
+
+{% block content %}
+
+<div class="opt-layout">
+
+    <!-- ===== PARAMETER PANEL ===== -->
+    <div class="param-panel">
+
+        <form method="POST" action="{% url 'run_optimization' %}" id="optimization-form">
+            {% csrf_token %}
+
+            <div class="param-card">
+                <div class="param-title">
+                    Parameter Optimasi
+                    <span class="material-icons-round" title="Pengaturan">tune</span>
+                </div>
+
+                <!-- Depot -->
+                <div class="form-group">
+                    <label class="form-label">Pilih Depot</label>
+                    <select name="depot_preset" id="depot-preset" onchange="updateDepotCoords(this.value)">
+                        <option value="gresik_kota" selected>Depot Gresik Kota</option>
+                        <option value="gresik_manyar">Depot Gresik Manyar</option>
+                        <option value="custom">Koordinat Manual</option>
+                    </select>
+                </div>
+
+                <div id="depot-coords-section" style="display:none;">
+                    <div class="form-group">
+                        <label class="form-label">{{ depot_form.depot_latitude.label }}</label>
+                        {{ depot_form.depot_latitude }}
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">{{ depot_form.depot_longitude.label }}</label>
+                        {{ depot_form.depot_longitude }}
+                    </div>
+                </div>
+
+                <!-- Hidden default depot coords -->
+                <input type="hidden" name="depot_latitude" id="depot-lat" value="-7.16434">
+                <input type="hidden" name="depot_longitude" id="depot-lon" value="112.65168">
+
+                <!-- Jumlah Kendaraan -->
+                <div class="form-group">
+                    <label class="form-label">Jumlah Kendaraan</label>
+                    <div style="display:flex; align-items:center; gap:8px;">
+                        <input type="number" name="n_vehicles" value="2" min="1" max="10" style="flex:1;">
+                        <span style="font-size:12px; color:var(--text-secondary); white-space:nowrap;">Unit</span>
+                    </div>
+                </div>
+
+                <!-- Prioritas Paket -->
+                <div class="form-group">
+                    <label class="form-label">Prioritas Paket</label>
+                    <select name="priority_filter">
+                        <option value="all">Semua Prioritas</option>
+                        <option value="1">Hanya Tinggi</option>
+                        <option value="2">Hanya Sedang</option>
+                        <option value="3">Hanya Rendah</option>
+                    </select>
+                </div>
+
+                <!-- Time Window -->
+                <div class="form-group">
+                    <label class="form-label">Time Window</label>
+                    <div class="time-row">
+                        <input type="time" name="tw_open" value="08:00">
+                        <div class="time-sep">s/d</div>
+                        <input type="time" name="tw_close" value="18:00">
+                    </div>
+                </div>
+
+                <!-- Algoritma -->
+                <div class="form-group">
+                    <label class="form-label" style="display:flex; align-items:center; justify-content:space-between;">
+                        Algoritma
+                        <span class="material-icons-round" style="font-size:14px; color:var(--text-muted);" title="Info algoritma">info</span>
+                    </label>
+                    <select name="algorithm_display" id="algo-display">
+                        <option value="aco" selected>ACO (Ant Colony Optimization)</option>
+                    </select>
+                </div>
+
+                <!-- Blocked Road Warning -->
+                {% with blocked_count=blocked_roads|default:0 %}
+                {% if blocked_count > 0 %}
+                <div class="warning-box mb-3">
+                    <span class="material-icons-round">warning</span>
+                    <div>
+                        <div class="warning-title">Jalan Ditutup</div>
+                        <div class="warning-sub">{{ blocked_count }} ruas jalan terdampak.</div>
+                    </div>
+                </div>
+                {% endif %}
+                {% endwith %}
+
+                <!-- ACO Parameters (collapsible) -->
+                <details style="margin-bottom:16px;">
+                    <summary style="font-size:12px; font-weight:600; color:var(--accent); cursor:pointer; user-select:none; margin-bottom:8px;">
+                        ⚙ Parameter ACO Lanjutan
+                    </summary>
+                    <div style="padding-top:12px; display:grid; gap:12px;">
+                        <div class="form-group" style="margin:0;">
+                            <label class="form-label">{{ aco_form.n_ants.label }}</label>
+                            {{ aco_form.n_ants }}
+                        </div>
+                        <div class="form-group" style="margin:0;">
+                            <label class="form-label">{{ aco_form.n_iterations.label }}</label>
+                            {{ aco_form.n_iterations }}
+                        </div>
+                        <div style="display:grid; grid-template-columns:1fr 1fr; gap:12px;">
+                            <div class="form-group" style="margin:0;">
+                                <label class="form-label">{{ aco_form.alpha.label }}</label>
+                                {{ aco_form.alpha }}
+                            </div>
+                            <div class="form-group" style="margin:0;">
+                                <label class="form-label">{{ aco_form.beta.label }}</label>
+                                {{ aco_form.beta }}
+                            </div>
+                        </div>
+                        <div style="display:grid; grid-template-columns:1fr 1fr; gap:12px;">
+                            <div class="form-group" style="margin:0;">
+                                <label class="form-label">{{ aco_form.rho.label }}</label>
+                                {{ aco_form.rho }}
+                            </div>
+                            <div class="form-group" style="margin:0;">
+                                <label class="form-label">{{ aco_form.Q.label }}</label>
+                                {{ aco_form.Q }}
+                            </div>
+                        </div>
+                    </div>
+                </details>
+
+                <button type="submit" class="btn btn-primary btn-full btn-lg" id="submit-btn">
+                    <span class="material-icons-round">bolt</span>
+                    Hitung Rute
+                </button>
+            </div>
+
+            <!-- Dataset Info -->
+            <div class="dataset-card">
+                <div class="dataset-icon">
+                    <span class="material-icons-round">storage</span>
+                </div>
+                <div>
+                    <div class="dataset-label">Dataset Aktif</div>
+                    <div class="dataset-sub">
+                        {% if total_nodes > 0 %}
+                            {{ total_nodes }} titik lokasi
+                        {% else %}
+                            Belum ada data
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+
+        </form>
+
+        <!-- Generate Data Shortcut -->
+        {% if not total_nodes %}
+        <div class="param-card" style="border: 1px dashed #bfdbfe; background: #eff6ff; box-shadow: none;">
+            <div style="font-size:13px; font-weight:600; color:#1e40af; margin-bottom:10px;">
+                <span class="material-icons-round" style="font-size:16px; vertical-align:middle;">add_circle</span>
+                Buat Data Sampel
+            </div>
+            <form method="POST" action="{% url 'generate_sample' %}">
+                {% csrf_token %}
+                <div style="display:flex; gap:8px; align-items:center;">
+                    <input type="number" name="n_nodes" value="30" min="5" max="100" style="flex:1; font-size:13px;">
+                    <input type="hidden" name="seed" value="42">
+                    <button type="submit" class="btn btn-primary btn-sm">Generate</button>
+                </div>
+                <p style="font-size:11px; color:#3b82f6; margin-top:6px;">Titik pengiriman acak di Gresik</p>
+            </form>
+        </div>
+        {% endif %}
+
+    </div>
+
+    <!-- ===== MAP PANEL ===== -->
+    <div style="display:flex; flex-direction:column; gap:0;">
+        <div class="map-panel" style="flex:1;">
+            {% if latest_map_html %}
+                <div style="flex:1; overflow:hidden;">
+                    {{ latest_map_html|safe }}
+                </div>
+            {% else %}
+                <div class="map-placeholder" style="flex:1;">
+                    <span class="material-icons-round">map</span>
+                    <h3>Peta Rute</h3>
+                    <p>Klik "Hitung Rute" untuk menampilkan rute optimal di peta</p>
+                    {% if total_nodes > 0 %}
+                    <span class="badge badge-blue" style="margin-top:4px;">
+                        <span class="material-icons-round" style="font-size:12px;">location_on</span>
+                        {{ total_nodes }} titik siap dioptimasi
+                    </span>
+                    {% endif %}
+                </div>
+            {% endif %}
+
+            <!-- Map Stats Bar -->
+            <div class="map-stats-bar">
+                <div class="map-stat">
+                    <div class="map-stat-label">Jarak Total</div>
+                    <div class="map-stat-value green">
+                        {% if latest_run %}{{ latest_run.total_distance_km|floatformat:1 }} km{% else %}— km{% endif %}
+                    </div>
+                </div>
+                <div class="map-stat">
+                    <div class="map-stat-label">Waktu Komputasi</div>
+                    <div class="map-stat-value blue">
+                        {% if latest_run %}{{ latest_run.computation_time_sec|floatformat:1 }} detik{% else %}— detik{% endif %}
+                    </div>
+                </div>
+                <div class="map-stat">
+                    <div class="map-stat-label">Kelayakan</div>
+                    <div class="map-stat-value orange">
+                        {% if latest_run %}{{ latest_run.route_feasibility_pct|floatformat:0 }}%{% else %}—%{% endif %}
+                    </div>
+                </div>
+                <div class="map-stat">
+                    <div class="map-stat-label">Pelanggaran TW</div>
+                    <div class="map-stat-value">
+                        {% if latest_run %}{{ latest_run.time_window_violations }}{% else %}—{% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+</div>
+
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+const depotPresets = {
+    gresik_kota:  { lat: '-7.16434',  lon: '112.65168' },
+    gresik_manyar: { lat: '-7.12500', lon: '112.68000' },
+    custom: null
+};
+
+function updateDepotCoords(val) {
+    const sec = document.getElementById('depot-coords-section');
+    if (val === 'custom') {
+        sec.style.display = 'block';
+    } else {
+        sec.style.display = 'none';
+        const preset = depotPresets[val];
+        if (preset) {
+            document.getElementById('depot-lat').value = preset.lat;
+            document.getElementById('depot-lon').value = preset.lon;
+        }
+    }
+}
+
+document.getElementById('optimization-form').addEventListener('submit', function() {
+    const btn = document.getElementById('submit-btn');
+    btn.disabled = true;
+    btn.innerHTML = '<span class="material-icons-round" style="animation:spin 1s linear infinite">autorenew</span> Menghitung...';
+});
+</script>
+<style>
+@keyframes spin { from{transform:rotate(0deg)} to{transform:rotate(360deg)} }
+</style>
+{% endblock %}

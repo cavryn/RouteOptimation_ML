@@ -89,3 +89,27 @@ class OSRMClient:
             return response.status_code == 200
         except:
             return False
+
+    def get_route_geometry(
+        self, 
+        coordinates: List[Tuple[float, float]]
+    ) -> Optional[List[Tuple[float, float]]]:
+        """Get actual road route geometry from OSRM API"""
+        try:
+            self._rate_limit()
+            coords_str = ';'.join([f"{lon},{lat}" for lon, lat in coordinates])
+            url = f"{self.base_url}/route/v1/driving/{coords_str}"
+            params = {'geometries': 'geojson', 'overview': 'full'}
+            
+            response = requests.get(url, params=params, timeout=30)
+            
+            if response.status_code == 200:
+                data = response.json()
+                if data.get('code') == 'Ok' and data.get('routes'):
+                    # OSRM returns GeoJSON coordinates as [lon, lat], Folium needs [lat, lon]
+                    geom = data['routes'][0]['geometry']['coordinates']
+                    return [[lat, lon] for lon, lat in geom]
+        except Exception:
+            pass
+        return None
+

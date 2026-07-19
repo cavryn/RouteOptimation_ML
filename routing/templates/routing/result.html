@@ -1,152 +1,499 @@
 {% extends 'routing/base.html' %}
 
-{% block title %}Results - Route Optimization{% endblock %}
+{% block title %}Hasil Optimasi — RouteOpt AI{% endblock %}
+{% block nav_optimasi %}active{% endblock %}
+{% block page_title %}Hasil Optimasi{% endblock %}
+{% block page_subtitle %}Rute optimal berhasil dihitung berdasarkan parameter aktif{% endblock %}
+
+{% block topbar_extra %}
+<a href="{% url 'optimasi_rute' %}" class="btn btn-secondary btn-sm">
+    <span class="material-icons-round">arrow_back</span>
+    Kembali
+</a>
+<button onclick="window.print()" class="btn btn-secondary btn-sm">
+    <span class="material-icons-round">picture_as_pdf</span>
+    Export PDF
+</button>
+<a href="{% url 'dashboard' %}" class="btn btn-primary btn-sm">
+    <span class="material-icons-round">save</span>
+    Simpan Rute
+</a>
+{% endblock %}
+
+{% block extra_styles %}
+.result-layout {
+    display: grid;
+    grid-template-columns: 280px 1fr 240px;
+    gap: 20px;
+    min-height: calc(100vh - 64px - 56px - 56px);
+}
+
+/* Left: Route Timeline */
+.route-panel {
+    background: var(--white);
+    border-radius: var(--radius);
+    box-shadow: var(--shadow);
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+}
+
+.route-panel-header {
+    padding: 16px 18px;
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+
+.route-panel-title {
+    font-size: 14px;
+    font-weight: 700;
+    color: var(--text-primary);
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.route-panel-title .material-icons-round { font-size: 18px; color: var(--accent); }
+
+.aktif-badge {
+    background: #d1fae5;
+    color: #059669;
+    font-size: 10px;
+    font-weight: 700;
+    padding: 2px 8px;
+    border-radius: 20px;
+}
+
+.route-timeline {
+    flex: 1;
+    overflow-y: auto;
+    padding: 12px 0;
+}
+
+.timeline-item {
+    display: flex;
+    gap: 12px;
+    padding: 10px 16px;
+    position: relative;
+    transition: background 0.15s;
+}
+
+.timeline-item:hover { background: #f9fafb; }
+
+.timeline-left {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    flex-shrink: 0;
+}
+
+.timeline-dot {
+    width: 30px; height: 30px;
+    border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 12px;
+    font-weight: 700;
+    flex-shrink: 0;
+    z-index: 1;
+}
+
+.dot-depot { background: var(--accent); color: #fff; }
+.dot-stop { background: #3b82f6; color: #fff; }
+.dot-return { background: #8b5cf6; color: #fff; }
+
+.timeline-line {
+    width: 2px;
+    flex: 1;
+    min-height: 20px;
+    background: #e5e7eb;
+    margin: 3px 0;
+}
+
+.timeline-content { flex: 1; padding-top: 4px; }
+.timeline-name { font-size: 13px; font-weight: 600; color: var(--text-primary); }
+.timeline-addr { font-size: 11px; color: var(--text-secondary); margin-top: 1px; }
+.timeline-time {
+    font-size: 12px;
+    font-weight: 700;
+    color: #3b82f6;
+    margin-top: 2px;
+}
+
+/* Center: Map */
+.map-panel-result {
+    background: var(--white);
+    border-radius: var(--radius);
+    box-shadow: var(--shadow);
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+}
+
+.map-content-result {
+    flex: 1;
+    min-height: 400px;
+    position: relative;
+    overflow: hidden;
+}
+
+.map-content-result iframe,
+.map-content-result > div {
+    height: 100% !important;
+    min-height: 400px;
+}
+
+.map-legend {
+    padding: 12px 16px;
+    border-top: 1px solid var(--border);
+    display: flex;
+    align-items: center;
+    gap: 20px;
+    flex-wrap: wrap;
+    font-size: 12px;
+    color: var(--text-secondary);
+    background: #fafafa;
+}
+
+.legend-entry {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 11px;
+    font-weight: 500;
+}
+
+.legend-dot {
+    width: 10px; height: 10px;
+    border-radius: 50%;
+}
+
+.legend-line {
+    width: 24px; height: 3px;
+    border-radius: 2px;
+}
+
+.legend-dashed {
+    width: 24px; height: 2px;
+    border-top: 2px dashed #ef4444;
+}
+
+/* Right: Metrics Panel */
+.metrics-panel {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.metric-card {
+    background: var(--white);
+    border-radius: var(--radius);
+    box-shadow: var(--shadow);
+    padding: 16px 18px;
+}
+
+.metric-label {
+    font-size: 10px;
+    font-weight: 700;
+    color: var(--text-muted);
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    margin-bottom: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+
+.metric-icon {
+    width: 28px; height: 28px;
+    border-radius: 7px;
+    display: flex; align-items: center; justify-content: center;
+}
+
+.metric-icon .material-icons-round { font-size: 15px; }
+.mi-green { background: #d1fae5; }
+.mi-green .material-icons-round { color: #059669; }
+.mi-brown { background: #fef3c7; }
+.mi-brown .material-icons-round { color: #d97706; }
+.mi-blue { background: #dbeafe; }
+.mi-blue .material-icons-round { color: #2563eb; }
+.mi-purple { background: #ede9fe; }
+.mi-purple .material-icons-round { color: #7c3aed; }
+.mi-gray { background: #f3f4f6; }
+.mi-gray .material-icons-round { color: #6b7280; }
+
+.metric-value {
+    font-size: 26px;
+    font-weight: 800;
+    color: var(--text-primary);
+    line-height: 1;
+}
+
+.metric-unit {
+    font-size: 14px;
+    font-weight: 500;
+    color: var(--text-secondary);
+    margin-left: 2px;
+}
+
+.metric-sub {
+    font-size: 11px;
+    color: var(--text-muted);
+    margin-top: 4px;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+}
+
+.metric-sub .material-icons-round { font-size: 12px; }
+.metric-sub.green { color: #059669; }
+.metric-sub.red { color: #dc2626; }
+
+.progress-bar-wrap {
+    background: #e5e7eb;
+    border-radius: 4px;
+    height: 6px;
+    margin-top: 10px;
+    overflow: hidden;
+}
+
+.progress-bar-fill {
+    height: 100%;
+    border-radius: 4px;
+    background: var(--accent);
+    transition: width 1s ease;
+}
+
+.comparison-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 8px 0;
+    border-bottom: 1px solid var(--border);
+    font-size: 12px;
+}
+
+.comparison-row:last-child { border-bottom: none; }
+.comparison-lbl { color: var(--text-secondary); }
+.comparison-val { font-weight: 700; }
+{% endblock %}
 
 {% block content %}
-<div class="max-w-7xl mx-auto">
-    
-    <!-- Header -->
-    <div class="mb-6 flex items-center justify-between">
-        <div>
-            <h2 class="text-3xl font-bold text-gray-800">Optimization Results</h2>
-            <p class="text-gray-600 mt-1">{{ opt_run.algorithm }} - {{ opt_run.created_at|date:"Y-m-d H:i" }}</p>
-        </div>
-        <a href="{% url 'dashboard' %}" class="btn-secondary">
-            ← Back to Dashboard
-        </a>
-    </div>
 
-    <!-- Metrics Cards -->
-    <div class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-8">
-        
-        <div class="bg-white rounded-lg shadow-md p-6">
-            <div class="flex items-center justify-between">
-                <div>
-                    <p class="text-sm text-gray-600">ACO Distance</p>
-                    <p class="text-2xl font-bold text-blue-600">{{ comparison.aco_distance_km }} km</p>
-                </div>
-                <svg class="w-12 h-12 text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 20l-5.447-2.724A1 1 0 013 16.382V5.618a1 1 0 011.447-.894L9 7m0 13l6-3m-6 3V7m6 10l4.553 2.276A1 1 0 0021 18.382V7.618a1 1 0 00-.553-.894L15 4m0 13V4m0 0L9 7"></path>
-                </svg>
+<div class="result-layout">
+
+    <!-- ===== LEFT: ROUTE TIMELINE ===== -->
+    <div class="route-panel">
+        <div class="route-panel-header">
+            <div class="route-panel-title">
+                <span class="material-icons-round">directions_car</span>
+                Rute Optimal
             </div>
+            <span class="aktif-badge">Aktif</span>
         </div>
 
-        <div class="bg-white rounded-lg shadow-md p-6">
-            <div class="flex items-center justify-between">
-                <div>
-                    <p class="text-sm text-gray-600">Baseline Distance</p>
-                    <p class="text-2xl font-bold text-gray-600">{{ comparison.baseline_distance_km }} km</p>
-                </div>
-                <svg class="w-12 h-12 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6"></path>
-                </svg>
-            </div>
-        </div>
+        <div class="route-timeline">
 
-        <div class="bg-white rounded-lg shadow-md p-6">
-            <div class="flex items-center justify-between">
-                <div>
-                    <p class="text-sm text-gray-600">Improvement</p>
-                    <p class="text-2xl font-bold {% if comparison.aco_better %}text-green-600{% else %}text-red-600{% endif %}">
-                        {{ comparison.improvement_km }} km
-                    </p>
-                    <p class="text-xs text-gray-500">({{ comparison.improvement_pct }}%)</p>
+            <!-- Depot start -->
+            <div class="timeline-item">
+                <div class="timeline-left">
+                    <div class="timeline-dot dot-depot">
+                        <span class="material-icons-round" style="font-size:14px;">home</span>
+                    </div>
+                    <div class="timeline-line"></div>
                 </div>
-                <svg class="w-12 h-12 {% if comparison.aco_better %}text-green-500{% else %}text-red-500{% endif %}" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6"></path>
-                </svg>
-            </div>
-        </div>
-
-        <div class="bg-white rounded-lg shadow-md p-6">
-            <div class="flex items-center justify-between">
-                <div>
-                    <p class="text-sm text-gray-600">Computation Time</p>
-                    <p class="text-2xl font-bold text-purple-600">{{ opt_run.computation_time_sec|floatformat:2 }}s</p>
-                </div>
-                <svg class="w-12 h-12 text-purple-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
-                </svg>
-            </div>
-        </div>
-    </div>
-
-    <!-- Detailed Info -->
-    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
-        
-        <!-- ACO Details -->
-        <div class="bg-white rounded-lg shadow-md p-6">
-            <h3 class="text-lg font-semibold text-gray-800 mb-4">ACO Details</h3>
-            <div class="space-y-3 text-sm">
-                <div class="flex justify-between">
-                    <span class="text-gray-600">Algorithm:</span>
-                    <span class="font-medium">{{ opt_run.algorithm }}</span>
-                </div>
-                <div class="flex justify-between">
-                    <span class="text-gray-600">Nodes:</span>
-                    <span class="font-medium">{{ opt_run.n_nodes }}</span>
-                </div>
-                <div class="flex justify-between">
-                    <span class="text-gray-600">Feasibility:</span>
-                    <span class="font-medium">{{ opt_run.route_feasibility_pct }}%</span>
-                </div>
-                <div class="flex justify-between">
-                    <span class="text-gray-600">TW Violations:</span>
-                    <span class="font-medium {% if opt_run.time_window_violations == 0 %}text-green-600{% else %}text-red-600{% endif %}">
-                        {{ opt_run.time_window_violations }}
-                    </span>
+                <div class="timeline-content">
+                    <div class="timeline-name">Depot Gresik</div>
+                    <div class="timeline-addr">Titik Keberangkatan</div>
+                    <div class="timeline-time">08:00</div>
                 </div>
             </div>
-        </div>
 
-        <!-- Parameters -->
-        <div class="bg-white rounded-lg shadow-md p-6">
-            <h3 class="text-lg font-semibold text-gray-800 mb-4">Parameters</h3>
-            <div class="space-y-2 text-sm">
-                {% for key, value in opt_run.parameters.items %}
-                <div class="flex justify-between">
-                    <span class="text-gray-600">{{ key }}:</span>
-                    <span class="font-medium">{{ value }}</span>
-                </div>
+            <!-- Route stops -->
+            {% if opt_run.route_json %}
+                {% for node_id in opt_run.route_json %}
+                    {% if node_id != 0 %}
+                    <div class="timeline-item">
+                        <div class="timeline-left">
+                            <div class="timeline-dot dot-stop" style="font-size:11px;">{{ forloop.counter }}</div>
+                            <div class="timeline-line"></div>
+                        </div>
+                        <div class="timeline-content">
+                            <div class="timeline-name">Node {{ node_id }}</div>
+                            <div class="timeline-addr">Titik Pengiriman #{{ forloop.counter }}</div>
+                        </div>
+                    </div>
+                    {% endif %}
                 {% endfor %}
-            </div>
-        </div>
-
-        <!-- Status -->
-        <div class="bg-teal-600 rounded-lg p-6 text-white">
-            <h3 class="text-lg font-semibold mb-2">Optimization Complete</h3>
-            <p class="text-sm opacity-90 mb-4">Route successfully optimized using ACO algorithm</p>
-            <div class="text-xs space-y-1 opacity-80">
-                <p>• Distance calculated via OSRM</p>
-                <p>• Constraints handled</p>
-                <p>• Baseline comparison done</p>
-                <p>• Results saved to database</p>
-            </div>
-        </div>
-    </div>
-
-    <!-- Map Visualization -->
-    <div class="bg-white rounded-lg shadow-md p-6 mb-8">
-        <h3 class="text-xl font-semibold text-gray-800 mb-4">Route Visualization</h3>
-        <div class="rounded-lg overflow-hidden" style="height: 600px;">
-            {{ map_html|safe }}
-        </div>
-    </div>
-
-    <!-- Route Sequence -->
-    <div class="bg-white rounded-lg shadow-md p-6">
-        <h3 class="text-xl font-semibold text-gray-800 mb-4">Route Sequence</h3>
-        <div class="flex flex-wrap gap-2">
-            {% for node in opt_run.route_json %}
-            <div class="{% if node == 0 %}bg-red-100 text-red-800{% else %}bg-blue-100 text-blue-800{% endif %} px-3 py-1 rounded-lg text-sm font-medium">
-                {% if node == 0 %}Depot{% else %}{{ node }}{% endif %}
-            </div>
-            {% if not forloop.last %}
-            <span class="text-gray-400">→</span>
             {% endif %}
-            {% endfor %}
+
+            <!-- Return to depot -->
+            <div class="timeline-item">
+                <div class="timeline-left">
+                    <div class="timeline-dot dot-return">
+                        <span class="material-icons-round" style="font-size:14px;">replay</span>
+                    </div>
+                </div>
+                <div class="timeline-content">
+                    <div class="timeline-name">Kembali ke Depot</div>
+                    <div class="timeline-addr">Akhir Rute Pengiriman</div>
+                </div>
+            </div>
+
         </div>
+    </div>
+
+    <!-- ===== CENTER: MAP ===== -->
+    <div class="map-panel-result">
+        <div class="map-content-result">
+            {% if map_html %}
+                {{ map_html|safe }}
+            {% else %}
+                <div style="display:flex; flex-direction:column; align-items:center; justify-content:center; height:100%; background:#f8faff; color:var(--text-muted); gap:12px;">
+                    <span class="material-icons-round" style="font-size:48px; color:var(--border);">map</span>
+                    <p style="font-size:13px;">Peta tidak tersedia</p>
+                </div>
+            {% endif %}
+        </div>
+        <div class="map-legend">
+            <span style="font-size:11px; font-weight:600; color:var(--text-secondary);">Legenda:</span>
+            <div class="legend-entry">
+                <div class="legend-dot" style="background:#1628b0;"></div>
+                Depot
+            </div>
+            <div class="legend-entry">
+                <div class="legend-line" style="background:#2563eb;"></div>
+                Rute Optimal
+            </div>
+            <div class="legend-entry">
+                <div class="legend-dashed"></div>
+                Jalan Ditutup
+            </div>
+            <span style="margin-left:auto; font-size:11px; font-weight:600; color:var(--accent);">
+                {{ opt_run.n_nodes }} Titik Teroptimasi
+            </span>
+        </div>
+    </div>
+
+    <!-- ===== RIGHT: METRICS ===== -->
+    <div class="metrics-panel">
+
+        <div class="metric-card">
+            <div class="metric-label">
+                Total Jarak
+                <div class="metric-icon mi-green">
+                    <span class="material-icons-round">route</span>
+                </div>
+            </div>
+            <div>
+                <span class="metric-value">{{ opt_run.total_distance_km|floatformat:1 }}</span>
+                <span class="metric-unit">km</span>
+            </div>
+            {% if comparison and comparison.improvement_pct > 0 %}
+            <div class="metric-sub green">
+                <span class="material-icons-round">trending_down</span>
+                {{ comparison.improvement_pct|floatformat:0 }}% lebih hemat dari baseline
+            </div>
+            {% endif %}
+        </div>
+
+        <div class="metric-card">
+            <div class="metric-label">
+                Estimasi Waktu
+                <div class="metric-icon mi-brown">
+                    <span class="material-icons-round">schedule</span>
+                </div>
+            </div>
+            <div>
+                <span class="metric-value">{{ opt_run.computation_time_sec|floatformat:1 }}</span>
+                <span class="metric-unit">detik</span>
+            </div>
+            <div class="metric-sub">
+                <span class="material-icons-round">info</span>
+                Waktu komputasi ACO
+            </div>
+        </div>
+
+        <div class="metric-card">
+            <div class="metric-label">
+                Pelanggaran Window
+                <div class="metric-icon {% if opt_run.time_window_violations == 0 %}mi-blue{% else %}mi-purple{% endif %}">
+                    <span class="material-icons-round">{% if opt_run.time_window_violations == 0 %}verified{% else %}warning{% endif %}</span>
+                </div>
+            </div>
+            <div>
+                <span class="metric-value">{{ opt_run.time_window_violations }}</span>
+                <span class="metric-unit">titik</span>
+            </div>
+            {% if opt_run.time_window_violations == 0 %}
+            <div class="metric-sub green">
+                <span class="material-icons-round">check</span>
+                Semua target waktu terpenuhi
+            </div>
+            {% else %}
+            <div class="metric-sub red">
+                <span class="material-icons-round">error</span>
+                Ada pelanggaran time window
+            </div>
+            {% endif %}
+        </div>
+
+        <div class="metric-card">
+            <div class="metric-label">
+                Kelayakan Rute
+                <div class="metric-icon mi-purple">
+                    <span class="material-icons-round">bar_chart</span>
+                </div>
+            </div>
+            <div>
+                <span class="metric-value">{{ opt_run.route_feasibility_pct|floatformat:0 }}</span>
+                <span class="metric-unit">%</span>
+            </div>
+            <div class="progress-bar-wrap">
+                <div class="progress-bar-fill" style="width: {{ opt_run.route_feasibility_pct|floatformat:0 }}%;"></div>
+            </div>
+            <div class="metric-sub {% if opt_run.route_feasibility_pct >= 90 %}green{% endif %}" style="margin-top:8px;">
+                {% if opt_run.route_feasibility_pct >= 90 %}Sangat Layak{% elif opt_run.route_feasibility_pct >= 70 %}Cukup Layak{% else %}Perlu Perbaikan{% endif %}
+            </div>
+        </div>
+
+        <div class="metric-card">
+            <div class="metric-label">
+                Total Titik
+                <div class="metric-icon mi-gray">
+                    <span class="material-icons-round">inventory_2</span>
+                </div>
+            </div>
+            <div>
+                <span class="metric-value">{{ opt_run.n_nodes }}</span>
+                <span class="metric-unit">titik</span>
+            </div>
+        </div>
+
+        <!-- Comparison -->
+        {% if comparison %}
+        <div class="metric-card">
+            <div class="metric-label" style="margin-bottom:12px;">vs Baseline (NN)</div>
+            <div class="comparison-row">
+                <span class="comparison-lbl">ACO</span>
+                <span class="comparison-val text-primary">{{ comparison.aco_distance_km|floatformat:1 }} km</span>
+            </div>
+            <div class="comparison-row">
+                <span class="comparison-lbl">Baseline</span>
+                <span class="comparison-val" style="color:var(--text-secondary);">{{ comparison.baseline_distance_km|floatformat:1 }} km</span>
+            </div>
+            <div class="comparison-row">
+                <span class="comparison-lbl">Penghematan</span>
+                <span class="comparison-val {% if comparison.aco_better %}text-green{% else %}text-red{% endif %}">
+                    {{ comparison.improvement_km|floatformat:1 }} km
+                </span>
+            </div>
+        </div>
+        {% endif %}
+
     </div>
 
 </div>
+
 {% endblock %}

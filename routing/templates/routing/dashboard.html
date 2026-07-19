@@ -1,221 +1,461 @@
 {% extends 'routing/base.html' %}
 
-{% block title %}Dashboard - Route Optimization{% endblock %}
+{% block title %}Dashboard — RouteOpt AI{% endblock %}
+{% block nav_dashboard %}active{% endblock %}
+{% block page_title %}Dashboard{% endblock %}
+{% block page_subtitle %}Ringkasan operasional pengiriman hari ini{% endblock %}
+
+{% block extra_styles %}
+.chart-container { position: relative; height: 220px; }
+
+.donut-wrap { display: flex; flex-direction: column; align-items: center; justify-content: center; }
+.donut-container { position: relative; width: 180px; height: 180px; margin: 0 auto 16px; }
+.donut-center {
+    position: absolute; inset: 0;
+    display: flex; flex-direction: column;
+    align-items: center; justify-content: center;
+    pointer-events: none;
+}
+.donut-num { font-size: 28px; font-weight: 800; color: var(--text-primary); }
+.donut-lbl { font-size: 11px; color: var(--text-secondary); font-weight: 500; }
+
+.legend-item {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 8px 0;
+    border-bottom: 1px solid var(--border);
+    font-size: 13px;
+}
+.legend-item:last-child { border-bottom: none; }
+.legend-left { display: flex; align-items: center; gap: 8px; }
+.legend-count { font-weight: 700; }
+.legend-pct { color: var(--text-muted); font-size: 11px; margin-left: 4px; }
+
+.alert-info-card {
+    background: var(--white);
+    border-radius: var(--radius);
+    padding: 18px 20px;
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    box-shadow: var(--shadow);
+    transition: transform 0.2s, box-shadow 0.2s;
+}
+.alert-info-card:hover { transform: translateY(-1px); box-shadow: var(--shadow-md); }
+.alert-icon {
+    width: 42px; height: 42px;
+    border-radius: 10px;
+    display: flex; align-items: center; justify-content: center;
+    flex-shrink: 0;
+}
+.alert-icon .material-icons-round { font-size: 20px; }
+.alert-icon-red { background: #fee2e2; }
+.alert-icon-red .material-icons-round { color: #dc2626; }
+.alert-icon-orange { background: #fef3c7; }
+.alert-icon-orange .material-icons-round { color: #d97706; }
+.alert-icon-blue { background: #dbeafe; }
+.alert-icon-blue .material-icons-round { color: #2563eb; }
+
+.alert-info-label { font-size: 12px; color: var(--text-secondary); font-weight: 500; }
+.alert-info-value { font-size: 18px; font-weight: 800; color: var(--text-primary); line-height: 1; margin: 2px 0; }
+.alert-info-sub { font-size: 11px; color: #ef4444; font-weight: 500; }
+.alert-info-sub.blue { color: var(--accent); }
+
+.link-all {
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--accent);
+    text-decoration: none;
+    display: flex; align-items: center; gap: 3px;
+}
+.link-all:hover { text-decoration: underline; }
+
+.run-id-link {
+    color: var(--accent);
+    font-weight: 600;
+    text-decoration: none;
+    font-size: 13px;
+}
+.run-id-link:hover { text-decoration: underline; }
+
+.status-badge {
+    display: inline-flex; align-items: center; gap: 5px;
+    padding: 3px 10px;
+    border-radius: 20px;
+    font-size: 11px;
+    font-weight: 600;
+}
+.status-berhasil { background: #d1fae5; color: #059669; }
+.status-gagal { background: #fee2e2; color: #dc2626; }
+
+.view-btn {
+    width: 28px; height: 28px;
+    border-radius: 6px;
+    background: #dbeafe;
+    display: inline-flex; align-items: center; justify-content: center;
+    text-decoration: none;
+    transition: background 0.15s;
+}
+.view-btn:hover { background: #bfdbfe; }
+.view-btn .material-icons-round { font-size: 15px; color: #2563eb; }
+
+.section-header {
+    display: flex; align-items: center; justify-content: space-between;
+    margin-bottom: 16px;
+}
+.section-title { font-size: 15px; font-weight: 700; color: var(--text-primary); }
+.section-sub { font-size: 12px; color: var(--text-secondary); }
+{% endblock %}
 
 {% block content %}
-<div class="max-w-7xl mx-auto">
-    
-    <!-- Header -->
-    <div class="mb-8">
-        <h2 class="text-3xl font-bold text-gray-800">Dashboard</h2>
-        <p class="text-gray-600 mt-2">Generate sample data atau upload CSV, lalu jalankan optimasi ACO</p>
-    </div>
 
-    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        
-        <!-- Left Column: Input Forms -->
-        <div class="lg:col-span-2 space-y-6">
-            
-            <!-- Generate Sample Data -->
-            <div class="bg-white rounded-lg shadow-md p-6">
-                <h3 class="text-xl font-semibold text-gray-800 mb-4 flex items-center">
-                    <svg class="w-6 h-6 mr-2 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path>
-                    </svg>
-                    Generate Sample Data
-                </h3>
-                
-                <form method="POST" action="{% url 'generate_sample' %}" class="space-y-4">
-                    {% csrf_token %}
-                    
-                    <div>
-                        <label class="block text-sm font-medium text-gray-700 mb-2">{{ sample_form.n_nodes.label }}</label>
-                        {{ sample_form.n_nodes }}
-                        <p class="text-xs text-gray-500 mt-1">{{ sample_form.n_nodes.help_text }}</p>
-                    </div>
-                    
-                    <div>
-                        <label class="block text-sm font-medium text-gray-700 mb-2">{{ sample_form.seed.label }}</label>
-                        {{ sample_form.seed }}
-                        <p class="text-xs text-gray-500 mt-1">{{ sample_form.seed.help_text }}</p>
-                    </div>
-                    
-                    <button type="submit" class="btn-primary w-full">
-                        Generate Data
-                    </button>
-                </form>
+<!-- ===== STAT CARDS ===== -->
+<div class="grid-4 mb-6">
+
+    <div class="stat-card">
+        <div>
+            <div class="stat-label">Total Paket</div>
+            <div class="stat-value">{{ total_nodes|default:"0" }}</div>
+            <div class="stat-change up">
+                <span class="material-icons-round" style="font-size:12px;">trending_up</span>
+                Titik pengiriman aktif
             </div>
-
-            <!-- Depot Configuration -->
-            <div class="bg-white rounded-lg shadow-md p-6">
-                <h3 class="text-xl font-semibold text-gray-800 mb-4 flex items-center">
-                    <svg class="w-6 h-6 mr-2 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"></path>
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"></path>
-                    </svg>
-                    Depot Configuration
-                </h3>
-                
-                <form method="POST" action="{% url 'run_optimization' %}" id="optimization-form">
-                    {% csrf_token %}
-                    
-                    <div class="space-y-4 mb-6">
-                        <div>
-                            <label class="block text-sm font-medium text-gray-700 mb-2">{{ depot_form.depot_latitude.label }}</label>
-                            {{ depot_form.depot_latitude }}
-                        </div>
-                        
-                        <div>
-                            <label class="block text-sm font-medium text-gray-700 mb-2">{{ depot_form.depot_longitude.label }}</label>
-                            {{ depot_form.depot_longitude }}
-                        </div>
-                    </div>
-
-                    <!-- ACO Parameters -->
-                    <h4 class="text-lg font-semibold text-gray-800 mb-4 mt-6">ACO Parameters</h4>
-                    
-                    <div class="space-y-4">
-                        <div>
-                            <label class="block text-sm font-medium text-gray-700 mb-2">{{ aco_form.n_ants.label }}</label>
-                            {{ aco_form.n_ants }}
-                            <p class="text-xs text-gray-500 mt-1">{{ aco_form.n_ants.help_text }}</p>
-                        </div>
-                        
-                        <div>
-                            <label class="block text-sm font-medium text-gray-700 mb-2">{{ aco_form.n_iterations.label }}</label>
-                            {{ aco_form.n_iterations }}
-                            <p class="text-xs text-gray-500 mt-1">{{ aco_form.n_iterations.help_text }}</p>
-                        </div>
-                        
-                        <div class="grid grid-cols-2 gap-4">
-                            <div>
-                                <label class="block text-sm font-medium text-gray-700 mb-2">{{ aco_form.alpha.label }}</label>
-                                {{ aco_form.alpha }}
-                                <p class="text-xs text-gray-500 mt-1">{{ aco_form.alpha.help_text }}</p>
-                            </div>
-                            <div>
-                                <label class="block text-sm font-medium text-gray-700 mb-2">{{ aco_form.beta.label }}</label>
-                                {{ aco_form.beta }}
-                                <p class="text-xs text-gray-500 mt-1">{{ aco_form.beta.help_text }}</p>
-                            </div>
-                        </div>
-                        
-                        <div class="grid grid-cols-2 gap-4">
-                            <div>
-                                <label class="block text-sm font-medium text-gray-700 mb-2">{{ aco_form.rho.label }}</label>
-                                {{ aco_form.rho }}
-                                <p class="text-xs text-gray-500 mt-1">{{ aco_form.rho.help_text }}</p>
-                            </div>
-                            <div>
-                                <label class="block text-sm font-medium text-gray-700 mb-2">{{ aco_form.Q.label }}</label>
-                                {{ aco_form.Q }}
-                                <p class="text-xs text-gray-500 mt-1">{{ aco_form.Q.help_text }}</p>
-                            </div>
-                        </div>
-                    </div>
-
-                    <button type="submit" class="btn-primary w-full mt-6">
-                        Run Optimization
-                    </button>
-                </form>
-            </div>
-
         </div>
-
-        <!-- Right Column: Stats & Info -->
-        <div class="space-y-6">
-            
-            <!-- Current Data Stats -->
-            <div class="bg-white rounded-lg shadow-md p-6">
-                <h3 class="text-lg font-semibold text-gray-800 mb-4">Current Data</h3>
-                
-                <div class="space-y-3">
-                    <div class="flex justify-between items-center">
-                        <span class="text-gray-600">Total Nodes:</span>
-                        <span class="text-2xl font-bold text-blue-600">{{ total_nodes }}</span>
-                    </div>
-                    
-                    <div class="flex justify-between items-center">
-                        <span class="text-gray-600">Status:</span>
-                        <span class="{% if total_nodes > 0 %}text-green-600{% else %}text-red-600{% endif %} font-semibold">
-                            {% if total_nodes > 0 %}Ready{% else %}No Data{% endif %}
-                        </span>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Info Card -->
-            <div class="bg-blue-50 rounded-lg p-6 border border-blue-200">
-                <h4 class="text-sm font-semibold text-blue-800 mb-2">Quick Guide</h4>
-                <ul class="text-xs text-blue-700 space-y-2">
-                    <li>1. Generate sample data (30-50 nodes recommended)</li>
-                    <li>2. Set depot coordinates (default: Gresik center)</li>
-                    <li>3. Adjust ACO parameters if needed</li>
-                    <li>4. Click "Run Optimization"</li>
-                    <li>5. View results with interactive map</li>
-                </ul>
-            </div>
-
-            <!-- Algorithm Info -->
-            <div class="bg-indigo-600 rounded-lg p-6 text-white">
-                <h4 class="text-sm font-semibold mb-2">Algorithm</h4>
-                <p class="text-xs mb-3">ACO (Ant Colony Optimization)</p>
-                <div class="text-xs space-y-1 opacity-90">
-                    <p>• Swarm-based metaheuristic</p>
-                    <p>• Colony: 20 ants</p>
-                    <p>• Iterations: 200</p>
-                    <p>• Comparison: vs Greedy NN</p>
-                </div>
-            </div>
-
+        <div class="stat-icon stat-icon-blue">
+            <span class="material-icons-round">inventory_2</span>
         </div>
     </div>
 
-    <!-- Delivery Points Table -->
-    {% if delivery_points %}
-    <div class="mt-8 bg-white rounded-lg shadow-md p-6">
-        <h3 class="text-xl font-semibold text-gray-800 mb-4">Delivery Points Preview</h3>
-        <div class="overflow-x-auto">
-            <table class="min-w-full divide-y divide-gray-200">
-                <thead class="bg-gray-50">
-                    <tr>
-                        <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Node</th>
-                        <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Latitude</th>
-                        <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Longitude</th>
-                        <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Demand</th>
-                        <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Priority</th>
-                        <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Status</th>
-                    </tr>
-                </thead>
-                <tbody class="bg-white divide-y divide-gray-200">
-                    {% for point in delivery_points|slice:":10" %}
-                    <tr>
-                        <td class="px-4 py-3 text-sm text-gray-900">{{ point.node_id }}</td>
-                        <td class="px-4 py-3 text-sm text-gray-600">{{ point.latitude|floatformat:6 }}</td>
-                        <td class="px-4 py-3 text-sm text-gray-600">{{ point.longitude|floatformat:6 }}</td>
-                        <td class="px-4 py-3 text-sm text-gray-600">{{ point.demand }}</td>
-                        <td class="px-4 py-3 text-sm">
-                            <span class="px-2 py-1 text-xs rounded {% if point.priority == 1 %}bg-red-100 text-red-800{% elif point.priority == 2 %}bg-blue-100 text-blue-800{% else %}bg-gray-100 text-gray-800{% endif %}">
-                                {{ point.get_priority_display }}
-                            </span>
-                        </td>
-                        <td class="px-4 py-3 text-sm">
-                            {% if point.road_status %}
-                            <span class="text-green-600">Open</span>
-                            {% else %}
-                            <span class="text-red-600">Closed</span>
-                            {% endif %}
-                        </td>
-                    </tr>
-                    {% endfor %}
-                </tbody>
-            </table>
-            {% if delivery_points.count > 10 %}
-            <p class="text-xs text-gray-500 mt-3 text-center">Showing 10 of {{ delivery_points.count }} nodes</p>
-            {% endif %}
+    <div class="stat-card">
+        <div>
+            <div class="stat-label">Dataset Aktif</div>
+            <div class="stat-value">{{ total_nodes|default:"0" }}</div>
+            <div class="stat-change neutral">
+                <span class="status-dot {% if total_nodes > 0 %}dot-green{% else %}dot-red{% endif %}"></span>
+                {% if total_nodes > 0 %}Siap dioptimasi{% else %}Belum ada data{% endif %}
+            </div>
+        </div>
+        <div class="stat-icon stat-icon-green">
+            <span class="material-icons-round">people</span>
         </div>
     </div>
-    {% endif %}
+
+    <div class="stat-card">
+        <div>
+            <div class="stat-label">Total Optimasi</div>
+            <div class="stat-value">{{ total_runs|default:"0" }}</div>
+            <div class="stat-change neutral">Rute telah dioptimasi</div>
+        </div>
+        <div class="stat-icon stat-icon-orange">
+            <span class="material-icons-round">local_gas_station</span>
+        </div>
+    </div>
+
+    <div class="stat-card">
+        <div>
+            <div class="stat-label">Kelayakan Rata-rata</div>
+            <div class="stat-value">{{ avg_feasibility|default:"—" }}{% if avg_feasibility %}%{% endif %}</div>
+            <div class="stat-change {% if avg_feasibility and avg_feasibility >= 90 %}up{% else %}neutral{% endif %}">
+                {% if avg_feasibility and avg_feasibility >= 90 %}
+                <span class="material-icons-round" style="font-size:12px;">check_circle</span>
+                Sangat baik
+                {% else %}
+                Dari total optimasi
+                {% endif %}
+            </div>
+        </div>
+        <div class="stat-icon stat-icon-purple">
+            <span class="material-icons-round">verified</span>
+        </div>
+    </div>
 
 </div>
+
+<!-- ===== CHARTS + STATUS ===== -->
+<div class="grid mb-6" style="grid-template-columns: 1fr 320px; gap: 20px;">
+
+    <!-- Grafik -->
+    <div class="card">
+        <div class="section-header mb-4" style="margin-bottom: 16px;">
+            <div>
+                <div class="section-title">Grafik Jarak Optimasi</div>
+                <div class="section-sub">Total jarak (km) dari 10 optimasi terakhir</div>
+            </div>
+            <div style="display:flex; gap:16px; font-size:12px; align-items:center;">
+                <span style="display:flex;align-items:center;gap:5px;">
+                    <span style="width:12px;height:12px;border-radius:50%;background:#2563eb;display:inline-block;"></span>
+                    Jarak ACO
+                </span>
+                <span style="display:flex;align-items:center;gap:5px;">
+                    <span style="width:12px;height:12px;border-radius:50%;background:#10b981;display:inline-block;"></span>
+                    Jarak Baseline
+                </span>
+            </div>
+        </div>
+        <div class="chart-container">
+            <canvas id="distanceChart"></canvas>
+        </div>
+    </div>
+
+    <!-- Donut Status -->
+    <div class="card">
+        <div class="section-header" style="margin-bottom: 12px;">
+            <div class="section-title">Status Paket Hari Ini</div>
+        </div>
+        <div class="donut-wrap">
+            <div class="donut-container">
+                <canvas id="statusChart"></canvas>
+                <div class="donut-center">
+                    <div class="donut-num">{{ total_nodes|default:"0" }}</div>
+                    <div class="donut-lbl">Total Paket</div>
+                </div>
+            </div>
+            <div style="width:100%">
+                <div class="legend-item">
+                    <div class="legend-left">
+                        <span class="status-dot dot-green"></span>
+                        Terkirim
+                    </div>
+                    <div>
+                        <span class="legend-count text-green">{{ delivered|default:"0" }}</span>
+                        <span class="legend-pct">({{ delivered_pct|default:"0" }}%)</span>
+                    </div>
+                </div>
+                <div class="legend-item">
+                    <div class="legend-left">
+                        <span class="status-dot dot-blue"></span>
+                        Dalam Proses
+                    </div>
+                    <div>
+                        <span class="legend-count" style="color:#3b82f6;">{{ in_process|default:"0" }}</span>
+                        <span class="legend-pct">({{ in_process_pct|default:"0" }}%)</span>
+                    </div>
+                </div>
+                <div class="legend-item">
+                    <div class="legend-left">
+                        <span class="status-dot dot-red"></span>
+                        Belum Dikirim
+                    </div>
+                    <div>
+                        <span class="legend-count text-red">{{ pending|default:"0" }}</span>
+                        <span class="legend-pct">({{ pending_pct|default:"0" }}%)</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+</div>
+
+<!-- ===== ALERT INFO CARDS ===== -->
+<div class="grid-3 mb-6">
+    <div class="alert-info-card">
+        <div class="alert-icon alert-icon-red">
+            <span class="material-icons-round">flag</span>
+        </div>
+        <div>
+            <div class="alert-info-label">Paket Prioritas Tinggi</div>
+            <div class="alert-info-value">{{ high_priority|default:"0" }}</div>
+            <div class="alert-info-sub">Perlu diproses segera</div>
+        </div>
+    </div>
+
+    <div class="alert-info-card">
+        <div class="alert-icon alert-icon-orange">
+            <span class="material-icons-round">warning</span>
+        </div>
+        <div>
+            <div class="alert-info-label">Jalan Bermasalah</div>
+            <div class="alert-info-value">{{ blocked_roads|default:"0" }}</div>
+            <div class="alert-info-sub">Lokasi terdampak</div>
+        </div>
+    </div>
+
+    <div class="alert-info-card">
+        <div class="alert-icon alert-icon-blue">
+            <span class="material-icons-round">local_shipping</span>
+        </div>
+        <div>
+            <div class="alert-info-label">Total Optimasi Selesai</div>
+            <div class="alert-info-value">{{ total_runs|default:"0" }}</div>
+            <div class="alert-info-sub blue">Rute telah dioptimasi</div>
+        </div>
+    </div>
+</div>
+
+<!-- ===== RIWAYAT OPTIMASI TERAKHIR ===== -->
+<div class="card">
+    <div class="section-header">
+        <div>
+            <div class="section-title">Riwayat Optimasi Terakhir</div>
+        </div>
+        <a href="{% url 'history' %}" class="link-all">
+            Lihat Semua <span class="material-icons-round" style="font-size:14px;">arrow_forward</span>
+        </a>
+    </div>
+
+    {% if recent_runs %}
+    <div class="table-wrap">
+        <table class="data-table">
+            <thead>
+                <tr>
+                    <th>Tanggal & Waktu</th>
+                    <th>Jumlah Titik</th>
+                    <th>Total Jarak</th>
+                    <th>Kelayakan</th>
+                    <th>Status</th>
+                    <th>Aksi</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for run in recent_runs %}
+                <tr>
+                    <td>{{ run.created_at|date:"d M Y, H:i" }}</td>
+                    <td>{{ run.n_nodes }} Titik</td>
+                    <td>{{ run.total_distance_km|floatformat:1 }} km</td>
+                    <td>
+                        <span class="{% if run.route_feasibility_pct >= 90 %}text-green{% else %}text-red{% endif %} font-semibold">
+                            {{ run.route_feasibility_pct|floatformat:0 }}%
+                        </span>
+                    </td>
+                    <td>
+                        <span class="status-badge status-berhasil">
+                            <span class="status-dot dot-green"></span>
+                            Berhasil
+                        </span>
+                    </td>
+                    <td>
+                        <a href="{% url 'result' %}" class="view-btn" title="Lihat Detail">
+                            <span class="material-icons-round">visibility</span>
+                        </a>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    {% else %}
+    <div class="empty-state">
+        <span class="material-icons-round">history</span>
+        <h3>Belum ada riwayat optimasi</h3>
+        <p>Jalankan optimasi rute untuk melihat hasilnya di sini.</p>
+        <a href="{% url 'optimasi_rute' %}" class="btn btn-primary mt-4">
+            <span class="material-icons-round">tune</span>
+            Mulai Optimasi
+        </a>
+    </div>
+    {% endif %}
+</div>
+
+<!-- ===== QUICK ACTION CARD ===== -->
+{% if not total_nodes %}
+<div class="card mt-4" style="border: 2px dashed var(--border); box-shadow: none; background: #fafafa;">
+    <div style="text-align:center; padding: 20px 0;">
+        <span class="material-icons-round" style="font-size:40px; color:var(--border); display:block; margin-bottom:12px;">add_circle_outline</span>
+        <h3 style="font-size:15px; font-weight:700; margin-bottom:6px;">Belum Ada Data Titik Pengiriman</h3>
+        <p style="font-size:13px; color:var(--text-secondary); margin-bottom:16px;">Generate data sampel untuk memulai optimasi rute</p>
+        <form method="POST" action="{% url 'generate_sample' %}" style="display:inline-flex; gap:12px; align-items:center; flex-wrap:wrap; justify-content:center;">
+            {% csrf_token %}
+            <input type="number" name="n_nodes" value="30" min="5" max="100" style="width:100px;" placeholder="Jumlah titik">
+            <input type="hidden" name="seed" value="42">
+            <button type="submit" class="btn btn-primary">
+                <span class="material-icons-round">auto_awesome</span>
+                Generate 30 Titik
+            </button>
+        </form>
+    </div>
+</div>
+{% endif %}
+
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+// ===== DISTANCE CHART =====
+const distCtx = document.getElementById('distanceChart').getContext('2d');
+const runLabels = {{ run_labels_json|default:"[]"|safe }};
+const acoDistances = {{ aco_distances_json|default:"[]"|safe }};
+const baselineDistances = {{ baseline_distances_json|default:"[]"|safe }};
+
+// Fallback demo data jika belum ada runs
+const labels = runLabels.length ? runLabels : ['Run 1','Run 2','Run 3','Run 4','Run 5'];
+const acoData = acoDistances.length ? acoDistances : [0,0,0,0,0];
+const baseData = baselineDistances.length ? baselineDistances : [0,0,0,0,0];
+
+new Chart(distCtx, {
+    type: 'bar',
+    data: {
+        labels: labels,
+        datasets: [
+            {
+                label: 'Jarak ACO (km)',
+                data: acoData,
+                backgroundColor: 'rgba(37,99,235,0.7)',
+                borderRadius: 6,
+                borderSkipped: false,
+            },
+            {
+                label: 'Jarak Baseline (km)',
+                data: baseData,
+                backgroundColor: 'rgba(16,185,129,0.5)',
+                borderRadius: 6,
+                borderSkipped: false,
+            }
+        ]
+    },
+    options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+            legend: { display: false },
+            tooltip: {
+                backgroundColor: 'rgba(26,31,54,0.95)',
+                padding: 12,
+                cornerRadius: 8,
+                callbacks: {
+                    label: ctx => ` ${ctx.dataset.label}: ${ctx.parsed.y.toFixed(2)} km`
+                }
+            }
+        },
+        scales: {
+            x: { grid: { display: false }, border: { display: false }, ticks: { color: '#9ca3af', font: { size: 11 } } },
+            y: { grid: { color: '#f3f4f6' }, border: { display: false }, ticks: { color: '#9ca3af', font: { size: 11 }, callback: v => v + ' km' } }
+        }
+    }
+});
+
+// ===== DONUT CHART =====
+const statusCtx = document.getElementById('statusChart').getContext('2d');
+const totalPaket = {{ total_nodes|default:"1" }};
+const delivered = {{ delivered|default:"0" }};
+const inProcess = {{ in_process|default:"0" }};
+const pending = {{ pending|default:"0" }};
+
+new Chart(statusCtx, {
+    type: 'doughnut',
+    data: {
+        labels: ['Terkirim', 'Dalam Proses', 'Belum Dikirim'],
+        datasets: [{
+            data: totalPaket > 0 ? [delivered, inProcess, pending || totalPaket] : [1],
+            backgroundColor: totalPaket > 0
+                ? ['#10b981', '#3b82f6', '#ef4444']
+                : ['#e5e7eb'],
+            borderWidth: 0,
+            hoverOffset: 6,
+        }]
+    },
+    options: {
+        responsive: true,
+        maintainAspectRatio: true,
+        cutout: '72%',
+        plugins: {
+            legend: { display: false },
+            tooltip: {
+                backgroundColor: 'rgba(26,31,54,0.95)',
+                padding: 12,
+                cornerRadius: 8,
+            }
+        }
+    }
+});
+</script>
 {% endblock %}
