@@ -13,6 +13,7 @@ class DeliveryPoint(models.Model):
     node_id = models.IntegerField()
     latitude = models.FloatField()
     longitude = models.FloatField()
+    address = models.CharField(max_length=255, blank=True, null=True, help_text="Alamat lengkap")
     demand = models.IntegerField(default=1)
     time_window_open = models.CharField(max_length=10, default='08:00')
     time_window_close = models.CharField(max_length=10, default='17:00')

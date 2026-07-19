@@ -8,7 +8,7 @@ from django.shortcuts import render, redirect
 from django.contrib import messages
 from django.http import JsonResponse
 from .models import OptimizationRun, ComparisonResult, DeliveryPoint
-from .forms import DepotForm, ACOParametersForm, GenerateSampleDataForm
+from .forms import DepotForm, ACOParametersForm, GenerateSampleDataForm, DeliveryPointForm
 from .ai_core.aco_optimizer import ACOOptimizer
 from .ai_core.baseline_nn import NearestNeighborBaseline
 from .ai_core.osrm_client import OSRMClient
@@ -427,6 +427,37 @@ def data_paket(request):
         'avg_service_time': avg_service_time,
     }
     return render(request, 'routing/data_paket.html', context)
+
+
+def tambah_paket(request):
+    """View untuk menambahkan paket pengiriman secara manual"""
+    if request.method == 'POST':
+        form = DeliveryPointForm(request.POST)
+        if form.is_valid():
+            # If node_id already exists, calculate a safe one, or just save
+            # The form should handle unique constraints if any. 
+            form.save()
+            messages.success(request, 'Data paket berhasil ditambahkan!')
+            return redirect('data_paket')
+        else:
+            messages.error(request, 'Gagal menambahkan paket. Periksa kembali data Anda.')
+    else:
+        # Default node ID is count + 1
+        next_id = DeliveryPoint.objects.count() + 1
+        # Default starting map location (Gresik)
+        form = DeliveryPointForm(initial={
+            'node_id': next_id,
+            'latitude': -7.164340,
+            'longitude': 112.651680,
+            'demand': 1,
+            'time_window_open': '08:00',
+            'time_window_close': '17:00',
+            'service_time': 5,
+            'priority': 2,
+            'road_status': True,
+        })
+        
+    return render(request, 'routing/tambah_paket.html', {'form': form})
 
 
 def live_map(request):

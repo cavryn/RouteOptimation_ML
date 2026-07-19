@@ -12,13 +12,14 @@ class DeliveryPointForm(forms.ModelForm):
     
     class Meta:
         model = DeliveryPoint
-        fields = ['node_id', 'latitude', 'longitude', 'demand', 
+        fields = ['node_id', 'latitude', 'longitude', 'address', 'demand', 
                   'time_window_open', 'time_window_close', 'service_time', 
                   'priority', 'road_status']
         widgets = {
             'node_id': forms.NumberInput(attrs={}),
-            'latitude': forms.NumberInput(attrs={'step': '0.000001'}),
-            'longitude': forms.NumberInput(attrs={'step': '0.000001'}),
+            'latitude': forms.NumberInput(attrs={'step': '0.000001', 'id': 'lat-input'}),
+            'longitude': forms.NumberInput(attrs={'step': '0.000001', 'id': 'lon-input'}),
+            'address': forms.TextInput(attrs={'placeholder': 'Cari alamat atau geser pin peta...', 'id': 'address-input'}),
             'demand': forms.NumberInput(attrs={}),
             'time_window_open': forms.TextInput(attrs={'placeholder': 'HH:MM'}),
             'time_window_close': forms.TextInput(attrs={'placeholder': 'HH:MM'}),

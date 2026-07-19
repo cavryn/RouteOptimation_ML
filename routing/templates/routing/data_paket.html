@@ -6,12 +6,16 @@
 {% block page_subtitle %}Kelola semua titik pengiriman{% endblock %}
 
 {% block topbar_extra %}
+<a href="{% url 'tambah_paket' %}" class="btn btn-primary btn-sm" style="margin-right: 8px;">
+    <span class="material-icons-round">add_location_alt</span>
+    Tambah Paket
+</a>
 <form method="POST" action="{% url 'generate_sample' %}" style="display:inline;">
     {% csrf_token %}
     <input type="hidden" name="n_nodes" value="30">
     <input type="hidden" name="seed" value="42">
-    <button type="submit" class="btn btn-primary btn-sm">
-        <span class="material-icons-round">add</span>
+    <button type="submit" class="btn btn-secondary btn-sm">
+        <span class="material-icons-round">auto_awesome</span>
         Generate Data
     </button>
 </form>
@@ -175,7 +179,7 @@
             <thead>
                 <tr>
                     <th>ID Node</th>
-                    <th>Koordinat</th>
+                    <th>Alamat / Koordinat</th>
                     <th>Demand</th>
                     <th>Prioritas</th>
                     <th>Time Window</th>
@@ -190,8 +194,15 @@
                     <td>
                         <span class="node-id-link">PKT{{ point.node_id|stringformat:"03d" }}</span>
                     </td>
-                    <td style="color: var(--text-secondary); font-size:12px; font-family: monospace;">
-                        {{ point.latitude|floatformat:5 }}, {{ point.longitude|floatformat:5 }}
+                    <td>
+                        {% if point.address %}
+                            <div style="font-size:12px; font-weight:600; color:var(--text-primary); max-width:200px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;" title="{{ point.address }}">
+                                {{ point.address }}
+                            </div>
+                        {% endif %}
+                        <div style="color: var(--text-secondary); font-size:11px; font-family: monospace;">
+                            {{ point.latitude|floatformat:5 }}, {{ point.longitude|floatformat:5 }}
+                        </div>
                     </td>
                     <td>
                         <span style="font-weight: 600;">{{ point.demand }}</span>

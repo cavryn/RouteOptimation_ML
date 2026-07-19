@@ -10,6 +10,7 @@ urlpatterns = [
     path('', views.dashboard, name='dashboard'),
     path('optimasi-rute/', views.optimasi_rute, name='optimasi_rute'),
     path('data-paket/', views.data_paket, name='data_paket'),
+    path('tambah-paket/', views.tambah_paket, name='tambah_paket'),
     path('live-map/', views.live_map, name='live_map'),
     path('statistik/', views.statistik, name='statistik'),
     path('pengaturan/', views.pengaturan, name='pengaturan'),
