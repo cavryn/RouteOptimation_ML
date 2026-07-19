@@ -147,11 +147,73 @@
 
 .sc-label { font-size: 11px; color: var(--text-secondary); }
 .sc-value { font-size: 20px; font-weight: 800; color: var(--text-primary); }
+
+/* Bulk toolbar */
+.bulk-toolbar {
+    display: none;
+    align-items: center;
+    gap: 12px;
+    background: #1e3a8a;
+    color: #fff;
+    border-radius: var(--radius);
+    padding: 10px 18px;
+    margin-bottom: 14px;
+    animation: slideDown 0.2s ease;
+}
+.bulk-toolbar.visible { display: flex; }
+@keyframes slideDown { from { opacity:0; transform:translateY(-8px); } to { opacity:1; transform:translateY(0); } }
+.bulk-count { font-weight: 700; font-size: 14px; }
+.bulk-count span { background: rgba(255,255,255,0.2); padding: 2px 8px; border-radius: 20px; margin: 0 4px; }
+.btn-bulk-del { background: #dc2626; color: #fff; border: none; border-radius: 8px; padding: 7px 14px; font-size: 12px; font-weight: 600; cursor: pointer; display: flex; align-items: center; gap: 5px; transition: background .15s; }
+.btn-bulk-del:hover { background: #b91c1c; }
+.btn-bulk-cancel { background: rgba(255,255,255,0.15); color: #fff; border: none; border-radius: 8px; padding: 7px 14px; font-size: 12px; font-weight: 600; cursor: pointer; transition: background .15s; }
+.btn-bulk-cancel:hover { background: rgba(255,255,255,0.25); }
+
+/* Confirm modal */
+.modal-overlay { display:none; position:fixed; inset:0; background:rgba(0,0,0,0.45); z-index:9999; align-items:center; justify-content:center; }
+.modal-overlay.open { display:flex; }
+.modal-box { background:#fff; border-radius:16px; padding:28px 32px; max-width:380px; width:90%; box-shadow:0 20px 60px rgba(0,0,0,0.2); text-align:center; }
+.modal-icon { width:56px; height:56px; background:#fee2e2; border-radius:50%; display:flex; align-items:center; justify-content:center; margin:0 auto 16px; }
+.modal-icon .material-icons-round { font-size:28px; color:#dc2626; }
+.modal-title { font-size:17px; font-weight:700; color:var(--text-primary); margin-bottom:8px; }
+.modal-body { font-size:13px; color:var(--text-secondary); margin-bottom:24px; line-height:1.5; }
+.modal-actions { display:flex; gap:10px; justify-content:center; }
 {% endblock %}
 
 {% block content %}
 
-<!-- Filter Bar -->
+<!-- Confirm delete modal -->
+<div class="modal-overlay" id="modal-overlay">
+    <div class="modal-box">
+        <div class="modal-icon"><span class="material-icons-round">delete_forever</span></div>
+        <div class="modal-title" id="modal-title">Hapus Paket?</div>
+        <div class="modal-body" id="modal-body">Paket yang dihapus tidak dapat dikembalikan.</div>
+        <div class="modal-actions">
+            <button class="btn btn-secondary btn-sm" onclick="closeModal()">Batal</button>
+            <form id="modal-form" method="POST" style="margin:0;">
+                {% csrf_token %}
+                <button type="submit" class="btn btn-sm" style="background:#dc2626; color:#fff;">Ya, Hapus</button>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Bulk delete form (hidden, submitted by JS) -->
+<form id="bulk-form" method="POST" action="{% url 'bulk_delete_paket' %}" style="display:none;">
+    {% csrf_token %}
+    <div id="bulk-hidden-inputs"></div>
+</form>
+
+<!-- Bulk toolbar -->
+<div class="bulk-toolbar" id="bulk-toolbar">
+    <span class="material-icons-round">check_box</span>
+    <span class="bulk-count"><span id="sel-count">0</span> dipilih</span>
+    <button class="btn-bulk-del" onclick="confirmBulkDelete()">
+        <span class="material-icons-round" style="font-size:16px;">delete</span>
+        Hapus Dipilih
+    </button>
+    <button class="btn-bulk-cancel" onclick="clearAll()">Batal Pilih</button>
+</div>
 <div class="filter-bar">
     <div class="search-wrap" style="flex:1; min-width:200px;">
         <span class="material-icons-round">search</span>
@@ -178,6 +240,11 @@
         <table class="data-table" id="data-table">
             <thead>
                 <tr>
+                    <th style="width:40px;">
+                        <input type="checkbox" id="check-all" title="Pilih Semua"
+                            onchange="toggleAll(this)"
+                            style="width:15px; height:15px; cursor:pointer; accent-color:var(--accent);">
+                    </th>
                     <th>ID Node</th>
                     <th>Alamat / Koordinat</th>
                     <th>Demand</th>
@@ -190,7 +257,14 @@
             <tbody id="table-body">
                 {% for point in delivery_points %}
                 <tr data-priority="{{ point.get_priority_display }}"
-                    data-road="{% if point.road_status %}Open{% else %}Closed{% endif %}">
+                    data-road="{% if point.road_status %}Open{% else %}Closed{% endif %}"
+                    data-nodeid="{{ point.node_id }}">
+                    <td style="width:40px;">
+                        <input type="checkbox" class="row-check"
+                            value="{{ point.node_id }}"
+                            onchange="updateBulkToolbar()"
+                            style="width:15px; height:15px; cursor:pointer; accent-color:var(--accent);">
+                    </td>
                     <td>
                         <span class="node-id-link">PKT{{ point.node_id|stringformat:"03d" }}</span>
                     </td>
@@ -231,9 +305,13 @@
                     </td>
                     <td>
                         <div style="display:flex; gap:6px;">
-                            <a href="#" class="action-btn action-btn-view" title="Detail">
-                                <span class="material-icons-round">visibility</span>
-                            </a>
+                            <button
+                                class="action-btn action-btn-del"
+                                title="Hapus"
+                                onclick="confirmSingleDelete({{ point.node_id }}, '{% url 'delete_paket' point.node_id %}')"
+                            >
+                                <span class="material-icons-round">delete</span>
+                            </button>
                         </div>
                     </td>
                 </tr>
@@ -330,19 +408,77 @@ function filterTable() {
         const rowRoad = (row.dataset.road || '').toLowerCase();
 
         const matchQ = !q || text.includes(q);
-        const matchP = !prio || rowPrio === prio.replace('high','High').replace('medium','Medium').replace('low','Low') || rowPrio.includes(prio);
+        const matchP = !prio || rowPrio.includes(prio);
         const matchR = !road || rowRoad === road;
 
-        if (matchQ && matchP && matchR) {
-            row.style.display = '';
-            visible++;
-        } else {
-            row.style.display = 'none';
-        }
+        row.style.display = (matchQ && matchP && matchR) ? '' : 'none';
+        if (matchQ && matchP && matchR) visible++;
     });
 
     const vc = document.getElementById('visible-count');
     if (vc) vc.textContent = visible;
 }
+
+// ── Checkbox helpers ──────────────────────────────────────────────────────
+function toggleAll(master) {
+    document.querySelectorAll('.row-check').forEach(cb => {
+        const row = cb.closest('tr');
+        if (row.style.display !== 'none') cb.checked = master.checked;
+    });
+    updateBulkToolbar();
+}
+
+function updateBulkToolbar() {
+    const checked = document.querySelectorAll('.row-check:checked');
+    const toolbar = document.getElementById('bulk-toolbar');
+    const countEl = document.getElementById('sel-count');
+    countEl.textContent = checked.length;
+    toolbar.classList.toggle('visible', checked.length > 0);
+
+    // sync master checkbox
+    const all = document.querySelectorAll('.row-check').length;
+    document.getElementById('check-all').indeterminate = checked.length > 0 && checked.length < all;
+    document.getElementById('check-all').checked = checked.length === all && all > 0;
+}
+
+function clearAll() {
+    document.querySelectorAll('.row-check').forEach(cb => cb.checked = false);
+    document.getElementById('check-all').checked = false;
+    updateBulkToolbar();
+}
+
+// ── Modal helpers ──────────────────────────────────────────────────────────
+function confirmSingleDelete(nodeId, url) {
+    document.getElementById('modal-title').textContent = 'Hapus Paket PKT' + String(nodeId).padStart(3,'0') + '?';
+    document.getElementById('modal-body').textContent = 'Paket ini akan dihapus permanen dan tidak bisa dikembalikan.';
+    document.getElementById('modal-form').action = url;
+    // clear bulk-hidden so the form is just a normal POST
+    document.getElementById('bulk-hidden-inputs').innerHTML = '';
+    document.getElementById('modal-overlay').classList.add('open');
+}
+
+function confirmBulkDelete() {
+    const checked = document.querySelectorAll('.row-check:checked');
+    if (!checked.length) return;
+    const ids = Array.from(checked).map(cb => cb.value);
+    document.getElementById('modal-title').textContent = 'Hapus ' + ids.length + ' Paket?';
+    document.getElementById('modal-body').textContent = ids.length + ' paket yang dipilih akan dihapus permanen.';
+    // Point modal form to bulk submit
+    const form = document.getElementById('modal-form');
+    form.action = '{% url "bulk_delete_paket" %}';
+    const container = document.getElementById('bulk-hidden-inputs');
+    container.innerHTML = ids.map(id => `<input type="hidden" name="selected_ids" value="${id}">`).join('');
+    form.appendChild(container);
+    document.getElementById('modal-overlay').classList.add('open');
+}
+
+function closeModal() {
+    document.getElementById('modal-overlay').classList.remove('open');
+}
+
+// Close on overlay click
+document.getElementById('modal-overlay').addEventListener('click', function(e) {
+    if (e.target === this) closeModal();
+});
 </script>
 {% endblock %}

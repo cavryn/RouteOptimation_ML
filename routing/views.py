@@ -190,8 +190,8 @@ def generate_sample_data(request):
             for i in range(1, n_nodes + 1):
                 DeliveryPoint.objects.create(
                     node_id=i,
-                    latitude=round(float(np.random.uniform(-7.19, -7.15)), 6),
-                    longitude=round(float(np.random.uniform(112.58, 112.64)), 6),
+                    latitude=round(float(np.random.uniform(-7.175, -7.148)), 6),
+                    longitude=round(float(np.random.uniform(112.632, 112.658)), 6),
                     demand=int(np.random.randint(1, 5)),
                     time_window_open='08:00',
                     time_window_close='17:00',
@@ -472,3 +472,32 @@ def statistik(request):
 def pengaturan(request):
     """Pengaturan — halaman konfigurasi sistem"""
     return render(request, 'routing/pengaturan.html')
+
+
+def delete_paket(request, node_id):
+    """Hapus satu titik pengiriman"""
+    if request.method == 'POST':
+        try:
+            point = DeliveryPoint.objects.get(node_id=node_id)
+            point.delete()
+            messages.success(request, f'Paket PKT{node_id:03d} berhasil dihapus.')
+        except DeliveryPoint.DoesNotExist:
+            messages.error(request, 'Paket tidak ditemukan.')
+    return redirect('data_paket')
+
+
+def bulk_delete_paket(request):
+    """Bulk-delete sejumlah titik pengiriman berdasarkan node_id yang dipilih"""
+    if request.method == 'POST':
+        selected_ids = request.POST.getlist('selected_ids')
+        if selected_ids:
+            try:
+                ids = [int(i) for i in selected_ids]
+                deleted_count, _ = DeliveryPoint.objects.filter(node_id__in=ids).delete()
+                messages.success(request, f'{deleted_count} paket berhasil dihapus.')
+            except Exception as e:
+                messages.error(request, f'Gagal menghapus: {e}')
+        else:
+            messages.warning(request, 'Tidak ada paket yang dipilih.')
+    return redirect('data_paket')
+

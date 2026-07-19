@@ -22,4 +22,8 @@ urlpatterns = [
     # Actions
     path('generate-sample/', views.generate_sample_data, name='generate_sample'),
     path('optimize/', views.run_optimization, name='run_optimization'),
+
+    # Delete actions
+    path('hapus-paket/<int:node_id>/', views.delete_paket, name='delete_paket'),
+    path('bulk-delete-paket/', views.bulk_delete_paket, name='bulk_delete_paket'),
 ]
